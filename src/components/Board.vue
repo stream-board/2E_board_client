@@ -24,10 +24,17 @@
       name="type" value="line" class="typeCheckbox">
       <label for="line">Line</label>
     </div>
+    <div id="actions">
+        <button id="ask-button">Ask for turn</button>
+    </div>
+    <div id="admin-actions" hidden>
+        <button id="reset-button">Reset permission</button>
+    </div>
   </div>
 </template>
 
 <script src="./Board.js">
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -59,6 +66,21 @@
         #color{
             position: absolute;
             top: 65px;
+            right: 10px;
+        }
+        #nick{
+            position: absolute;
+            top: 100px;
+            right: 10px;
+        }
+        #actions {
+            position: absolute;
+            top: 150px;
+            right: 10px;
+        }
+        #admin-actions {
+            position: absolute;
+            top: 150px;
             right: 10px;
         }
     }

@@ -1,8 +1,9 @@
 <template>
   <div class="lobby">
     <h1>{{ msg }}</h1>
-    <input type="text" v-model="roomId">
-    <button @click="goToRoute()">Go to room {{roomId}}</button>
+    <input type="text" v-model="roomId" placeholder="Room">
+    <input type="text" v-model="nick" placeholder="Nickname">
+    <button @click="goToRoute()">Go to room {{roomId}} as {{nick}}</button>
   </div>
 </template>
 
@@ -12,12 +13,13 @@ export default {
   data () {
     return {
       roomId: '',
+      nick: '',
       msg: 'Welcome to the StreamBoard lobby'
     }
   },
   methods: {
     goToRoute () {
-      this.$router.push({name: 'Room', params: {roomid: this.roomId}})
+      this.$router.push({path: `${this.roomId}`, query: {nick: this.nick}})
     }
   }
 }

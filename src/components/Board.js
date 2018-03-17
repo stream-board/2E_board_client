@@ -1,15 +1,20 @@
 export default {
   name: 'Board',
   mounted: function () {
-    componentLoaded(this.$route.params.roomid)
+    componentLoaded(this.$route.params.roomid, this.$route.query.nick, this.$swal, this.$router)
   }
 }
 
-function componentLoaded (roomId) {
-  const socket = io('localhost:3000')
+function componentLoaded (roomId, nick, swal, router) {
+  const URL = `localhost:3000?room=${roomId}&nick=${nick}`
+  var $swal = swal
+  var $router = router
+  // eslint-disable-next-line
+  const socket = io(URL)
+
+  var isAllowed = false
 
   var isPenDown = false
-
   var snapshot
 
   var defaultLineColor = '#000000'
@@ -25,14 +30,13 @@ function componentLoaded (roomId) {
 
   var localPen = {}
 
-  window.onload = init
+  init()
 
   function init () {
-    socket.emit('join', {room: roomId})
+    registerSocketListeners()
     initCanvas()
     initInput()
     registerInputListeners()
-    registerSocketListeners()
   }
 
   function initCanvas () {
@@ -69,19 +73,107 @@ function componentLoaded (roomId) {
     document.ontouchstart = touchDownListener
     document.ontouchmove = touchMoveListener
     document.ontouchend = touchUpListener
+    document.getElementById('ask-button').onclick = askForTurn
+    document.getElementById('reset-button').onclick = resetPermissions
   }
 
   function registerSocketListeners () {
-    socket.on('path', function (data) {
-      pathMessageListener(data)
+    socket.on('admin', function () {
+      document.getElementById('actions').hidden = true
+      isAllowed = true
     })
-    socket.on('line', function (data) {
-      lineMessageListener(data)
+    socket.on('draw', function (data) {
+      drawMessageListener(data)
+    })
+    socket.on('askForBoard', function (data) {
+      $swal({
+        title: 'Turn petition',
+        text: `User ${data.nick} wants to use the board`,
+        type: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, approve',
+        cancelButtonText: 'No, disapprove'
+      }).then((result) => {
+        if (result.value) {
+          $swal(
+            'Approved',
+            'User has the permission',
+            'success'
+          )
+          isAllowed = false
+          socket.emit('answerForBoard', {answer: true, socketId: data.socketId})
+          document.getElementById('admin-actions').hidden = false
+        } else {
+          $swal(
+            'Disapproved',
+            'You disapproved the user',
+            'error'
+          )
+          socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
+        }
+      })
+    })
+    socket.on('answerForBoard', function (data) {
+      if (data) {
+        $swal({
+          title: 'Permission granted',
+          text: 'You can draw on the board',
+          type: 'success'
+        })
+        isAllowed = true
+        document.getElementById('actions').hidden = true
+      } else {
+        $swal({
+          title: 'Permission denied',
+          text: 'You can\'t draw on the board',
+          type: 'error'
+        })
+        isAllowed = false
+      }
+    })
+    socket.on('resetBoard', function (data) {
+      isAllowed = true
+      $swal(
+        'You took the pen back',
+        'You can start drawing again',
+        'success'
+      )
+      document.getElementById('admin-actions').hidden = true
+    })
+    socket.on('lostPermission', function () {
+      isAllowed = false
+      $swal(
+        'You lost permission',
+        'You can no longer draw',
+        'error'
+      )
+      document.getElementById('actions').hidden = false
+    })
+    socket.on('hostLeft', function () {
+      $swal({
+        title: 'Call finished',
+        text: 'The host has left the room, you got disconnected of the room',
+        type: 'info',
+        confirmButtonColor: '#3085d6',
+        confirmButtonText: 'Return to lobby'
+      }).then((result) => {
+        $router.push({path: '/'})
+      })
     })
   }
 
   function getType () {
     return document.querySelector('.typeCheckbox:checked').value
+  }
+
+  function askForTurn () {
+    socket.emit('askForBoard')
+  }
+
+  function resetPermissions () {
+    socket.emit('resetBoard')
   }
 
   function takeSnapshot () {
@@ -92,22 +184,26 @@ function componentLoaded (roomId) {
     context.putImageData(snapshot, 0, 0)
   }
 
-  function pathMessageListener (data) {
-    drawPath(data.color, data.thickness, data.type, data.coords.x, data.coords.y)
+  function drawMessageListener (data) {
+    console.log(data)
+    switch (data.type) {
+      case 'path':
+        drawPath(data.color, data.thickness, data.event, data.coords.x, data.coords.y)
+        break
+      case 'line':
+        drawLine(data.color, data.thickness,
+          data.coords.start.x, data.coords.start.y,
+          data.coords.end.x, data.coords.end.y)
+        break
+    }
   }
 
-  function lineMessageListener (data) {
-    drawLine(data.color, data.thickness,
-      data.coords.start.x, data.coords.start.y,
-      data.coords.end.x, data.coords.end.y)
-  }
-
-  function broadcastPath (type, coords) {
-    socket.emit('path', { type: type, coords: coords, color: localLineColor, thickness: localLineThickness })
+  function broadcastPath (event, coords) {
+    socket.emit('draw', { type: 'path', event: event, coords: coords, color: localLineColor, thickness: localLineThickness })
   }
 
   function broadcastLine (coords) {
-    socket.emit('line', { color: localLineColor, thickness: localLineThickness, coords: coords })
+    socket.emit('draw', { type: 'line', color: localLineColor, thickness: localLineThickness, coords: coords })
   }
 
   function touchDownListener (e) {
@@ -189,23 +285,25 @@ function componentLoaded (roomId) {
   }
 
   function penDown (x, y) {
-    isPenDown = true
-    localPen.x = x
-    localPen.y = y
+    if (isAllowed) {
+      isPenDown = true
+      localPen.x = x
+      localPen.y = y
 
-    switch (getType()) {
-      case 'point':
-        drawPath(localLineColor, localLineThickness, 'start', x, y)
-        broadcastPath('start', localPen)
-        break
-      case 'line':
-        takeSnapshot()
-        break
+      switch (getType()) {
+        case 'point':
+          drawPath(localLineColor, localLineThickness, 'start', x, y)
+          broadcastPath('start', localPen)
+          break
+        case 'line':
+          takeSnapshot()
+          break
+      }
     }
   }
 
   function penMove (x, y) {
-    if (isPenDown) {
+    if (isPenDown && isAllowed) {
       switch (getType()) {
         case 'point':
           drawPath(localLineColor, localLineThickness, 'move', x, y)
@@ -220,7 +318,7 @@ function componentLoaded (roomId) {
   }
 
   function penUp (x, y) {
-    if (isPenDown) {
+    if (isPenDown && isAllowed) {
       switch (getType()) {
         case 'point':
           drawPath(localLineColor, localLineThickness, 'end', x, y)

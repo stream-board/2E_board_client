@@ -6,11 +6,11 @@
 </template>
 
 <script>
-import Board from '@/components/Board'
+import Board from '@/components/Board.vue'
 export default {
   name: 'Room',
   components: {
-    Board
+    'board': Board
   }
 }
 </script>
