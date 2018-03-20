@@ -19,7 +19,7 @@ export default {
   },
   methods: {
     goToRoute () {
-      this.$router.push({path: `${this.roomId}`, query: {nick: this.nick}})
+      this.$router.push({path: `${this.roomId}`, query: {nick: this.nick, id: this.nick}})
     }
   }
 }
