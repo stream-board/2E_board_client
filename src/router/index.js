@@ -2,7 +2,7 @@ import Vue from 'vue'
 import Router from 'vue-router'
 import Lobby from '@/components/Lobby'
 import Room from '@/components/Room'
-
+import Streaming from '@/components/Streaming.vue'
 Vue.use(Router)
 
 export default new Router({
@@ -13,9 +13,14 @@ export default new Router({
       component: Room
     },
     {
-      path: '/',
+      path: '/lobby',
       name: 'Lobby',
       component: Lobby
+    },
+    {
+      path: '/',
+      name: 'Streaming',
+      component: Streaming
     }
   ]
 })
