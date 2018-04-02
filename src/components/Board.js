@@ -6,7 +6,7 @@ export default {
 }
 
 function componentLoaded (roomId, nick, swal, router) {
-  const URL = `localhost:3000?room=${roomId}&nick=${nick}&id=${nick}`
+  const URL = `192.168.99.101:4002?room=${roomId}&nick=${nick}&id=${nick}`
   var $swal = swal
   var $router = router
   // eslint-disable-next-line
