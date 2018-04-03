@@ -40,16 +40,18 @@
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
     .board-container{
-        z-index: -1;
+        z-index: 2;
         background-color: #555;
-        width: 100vw;
-        height: 100vh;
+        width: 100%;
+        height: 100%;
         position: absolute;
         #board{
             position: absolute;
             top: 0;
             left: 0;
             background-color: #FFF;
+            height: 100%;
+            width: 100%;
         }
         #thickness{
             position: absolute;

@@ -1,12 +1,13 @@
 export default {
   name: 'Board',
   mounted: function () {
-    componentLoaded(this.$route.params.roomid, this.$route.query.nick, this.$swal, this.$router)
+    componentLoaded(this.$route.params.roomid, this.$swal, this.$router)
   }
 }
 
-function componentLoaded (roomId, nick, swal, router) {
-  const URL = `192.168.99.101:4002?room=${roomId}&nick=${nick}&id=${nick}`
+function componentLoaded (roomId, swal, router) {
+  let user = JSON.parse(localStorage.getItem('user'))
+  const URL = `192.168.99.100:4002?room=${roomId}&nick=${user.nickname}&id=${user.id}`
   var $swal = swal
   var $router = router
   // eslint-disable-next-line
@@ -185,7 +186,6 @@ function componentLoaded (roomId, nick, swal, router) {
   }
 
   function drawMessageListener (data) {
-    console.log(data)
     switch (data.type) {
       case 'path':
         drawPath(data.color, data.thickness, data.event, data.coords.x, data.coords.y)
@@ -242,8 +242,9 @@ function componentLoaded (roomId, nick, swal, router) {
 
     var event = e || window.event
 
-    var mouseX = event.clientX - canvas.offsetLeft
-    var mouseY = event.clientY - canvas.offsetTop
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
+    console.log(canvas)
 
     penDown(mouseX, mouseY)
 
@@ -261,8 +262,8 @@ function componentLoaded (roomId, nick, swal, router) {
       return
     }
     var event = e || window.event
-    var mouseX = event.clientX - canvas.offsetLeft
-    var mouseY = event.clientY - canvas.offsetTop
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
 
     penMove(mouseX, mouseY)
 
@@ -278,8 +279,8 @@ function componentLoaded (roomId, nick, swal, router) {
       return
     }
     var event = e || window.event
-    var mouseX = event.clientX - canvas.offsetLeft
-    var mouseY = event.clientY - canvas.offsetTop
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
 
     penUp(mouseX, mouseY)
   }

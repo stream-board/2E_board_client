@@ -12,7 +12,7 @@ import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 
 const httpLink = new HttpLink({
-  uri: 'http://192.168.99.101:5000/graphql'
+  uri: 'http://192.168.99.100:5000/graphql'
 })
 
 const apolloClient = new ApolloClient({

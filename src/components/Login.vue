@@ -63,7 +63,7 @@ export default {
     ],
     hidden: true,
     snackbar: false,
-    message: 'Credenciales Incorrectas'
+    message: 'Incorrect Credentials'
   }),
   methods: {
     submit () {
