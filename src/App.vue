@@ -16,11 +16,10 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style>
 html,body{
   margin: 0;
   padding: 0;
-  overflow: hidden;
 }
 #app-container{
   width: 100%;

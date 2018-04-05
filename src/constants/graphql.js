@@ -20,6 +20,21 @@ export const VALIDATE_TOKEN_QUERY = gql`
   }
 `
 
+export const ALL_ROOMS_QUERY = gql`
+  query AllRoomsQuery{
+    allRooms{
+      idRoom,
+      nameRoom,
+      descriptionRoom,
+      owner{
+        name,
+        nickname,
+        image
+      }
+    }
+  }
+`
+
 // Mutations
 
 export const CREATE_SESSION_MUTATION = gql`
@@ -41,15 +56,42 @@ export const CREATE_SESSION_MUTATION = gql`
   }
 `
 
-export const CREATE_BOARD_ROOM_MUTATION = gql`
-mutation CreateBoardRoomMutation($id: Int!, $admin: String!) {
-  createBoardRoom(
+export const CREATE_ROOM_MUTATION = gql`
+mutation CreateRoomMutation($idOwner: Int!, $nameRoom: String!, $descriptionRoom: String!) {
+  createRoom(
     room:{
-      id: $id,
-      admin: $admin,
+      idOwner: $idOwner,
+      nameRoom: $nameRoom,
+      descriptionRoom: $descriptionRoom
     }
   ) {
-    id
+    idRoom
+  }
+}
+`
+
+export const JOIN_ROOM_MUTATION = gql`
+mutation JoinRoomMutation($idOwner: Int!, $idRoom: Int!) {
+  joinRoom(
+    room:{
+      idOwner: $idOwner,
+      idRoom: $idRoom
+    }
+  ) {
+    idRoom
+  }
+}
+`
+
+export const DELETE_ROOM_MUTATION = gql`
+mutation DeleteRoomMutation($idOwner: Int!, $idRoom: Int!) {
+  deleteRoom(
+    roomDelete:{
+      idOwner: $idOwner,
+      idRoom: $idRoom
+    }
+  ) {
+    idRoom
   }
 }
 `

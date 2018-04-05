@@ -7,7 +7,7 @@ export default {
 
 function componentLoaded (roomId, swal, router) {
   let user = JSON.parse(localStorage.getItem('user'))
-  const URL = `192.168.99.100:4002?room=${roomId}&nick=${user.nickname}&id=${user.id}`
+  const URL = `ec2-34-228-226-216.compute-1.amazonaws.com:4002?room=${roomId}&nick=${user.nickname}&id=${user.id}`
   var $swal = swal
   var $router = router
   // eslint-disable-next-line
@@ -80,6 +80,7 @@ function componentLoaded (roomId, swal, router) {
 
   function registerSocketListeners () {
     socket.on('admin', function () {
+      console.log('admin')
       document.getElementById('actions').hidden = true
       isAllowed = true
     })

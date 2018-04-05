@@ -4,7 +4,7 @@
       <v-flex xs1>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="exitToLobby()">
-            <v-icon>exit_to_app</v-icon>
+            <v-icon>call_end</v-icon>
           </v-btn>
           <span>Go to lobby</span>
         </v-tooltip>

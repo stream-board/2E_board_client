@@ -30,6 +30,10 @@ export default new Router({
           component: Lobby
         }
       ]
+    },
+    {
+      path: '',
+      redirect: '/app'
     }
   ]
 })

@@ -26,7 +26,7 @@ const store = new Vuex.Store({
 })
 
 const httpLink = new HttpLink({
-  uri: 'http://192.168.99.100:5000/graphql'
+  uri: 'http://ec2-18-232-78-10.compute-1.amazonaws.com:5000/graphql'
 })
 
 const apolloClient = new ApolloClient({
