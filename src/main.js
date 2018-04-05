@@ -10,6 +10,20 @@ import { InMemoryCache } from 'apollo-cache-inmemory'
 import VueApollo from 'vue-apollo'
 import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
+import Vuex from 'vuex'
+
+Vue.use(Vuex)
+
+const store = new Vuex.Store({
+  state: {
+    count: 0
+  },
+  mutations: {
+    increment (state) {
+      state.count++
+    }
+  }
+})
 
 const httpLink = new HttpLink({
   uri: 'http://192.168.99.100:5000/graphql'
@@ -48,6 +62,7 @@ new Vue({
   el: '#app',
   router,
   provide: apolloProvider.provide(),
+  store: store,
   components: {App},
   template: '<App/>'
 })

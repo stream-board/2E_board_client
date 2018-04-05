@@ -9,6 +9,7 @@
   ></v-text-field>
   <v-btn color="primary" @click="joinRoom()">Join room {{roomId}}</v-btn>
   <v-btn color="primary" @click="createRoom()">Create room {{roomId}}</v-btn>
+  <v-btn color="primary" @click="emitEvent()">Emit Event</v-btn>
   <v-snackbar
     color="error"
     v-model="snackbar"
@@ -30,7 +31,8 @@ export default {
       nick: '',
       msg: 'Welcome to the StreamBoard lobby',
       snackbar: false,
-      message: 'Error while creating room'
+      message: 'Error while creating room',
+      clickCount: 0
     }
   },
   methods: {
