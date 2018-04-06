@@ -44,7 +44,15 @@
         </v-tooltip>
       </v-flex>
       <div class="divider-actions"></div>
-      <v-flex xs1>
+      <v-flex xs1 v-if="admin">
+        <v-tooltip top>
+          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
+            <v-icon>mdi-pencil-lock</v-icon>
+          </v-btn>
+          <span>Take back pencil</span>
+        </v-tooltip>
+      </v-flex>
+      <v-flex xs1 v-else>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
             <v-icon>create</v-icon>
@@ -101,7 +109,7 @@
           <v-container id="thickness-container" grid-list-sm>
             <v-layout row wrap>
               <v-flex xs6 v-for="option in thicknesses" :key="option.value">
-                <v-btn fab dark color="black" v-bind:style="{width: option.name, height: option.name}" @click="changeThickness(option)"></v-btn>
+                <v-btn fab dark v-bind:style="{width: option.name, height: option.name, backgroundColor: selectedColor}" @click="changeThickness(option)"></v-btn>
               </v-flex>
             </v-layout>
           </v-container>
@@ -136,6 +144,7 @@ export default {
   data: () => ({
     mic: true,
     cam: true,
+    admin: false,
     selectedColor: '#f44336',
     selectedThickness: '8px',
     selectedType: 'brush',
@@ -146,6 +155,12 @@ export default {
   props: [
     'room'
   ],
+  mounted () {
+    this.$bus.on('set-admin', () => {
+      console.log('created admin')
+      this.admin = true
+    })
+  },
   methods: {
     exitToLobby () {
       this.$router.push({path: '/app'})
@@ -171,6 +186,7 @@ export default {
       this.$bus.emit('block-cam')
     },
     askForBoard () {
+      console.log(this.admin)
       this.$bus.emit('ask-for-turn')
     },
     changeColor (color) {
@@ -179,7 +195,7 @@ export default {
     },
     changeType (type) {
       this.selectedType = type.icon
-      console.log('Change type')
+      this.$bus.emit('change-type', type.value)
     },
     changeThickness (thickness) {
       this.$bus.emit('change-thickness', thickness)

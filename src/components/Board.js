@@ -2,9 +2,10 @@ export default {
   name: 'Board',
   data: () => ({
     socket: null,
-    isAllowed: 'false',
+    isAllowed: false,
     selectedColor: '#f44336',
-    selectedThickness: 8
+    selectedThickness: 8,
+    selectedType: 'point'
   }),
   mounted: function () {
     let user = JSON.parse(localStorage.getItem('user'))
@@ -20,21 +21,25 @@ export default {
       this.selectedThickness = data.value
       this.updateCursor()
     })
+    this.$bus.on('change-type', (data) => {
+      this.selectedType = data
+    })
     componentLoaded(this.$route.params.roomid, this)
-    window.setTimeout(this.updateCursor(), 500)
+    this.updateCursor()
   },
   methods: {
     askForTurn () {
       this.socket.emit('askForBoard')
     },
     updateCursor () {
-      console.log(this.selectedThickness)
-      console.log(this.selectedColor)
       $('#board').awesomeCursor('circle', {
         color: this.selectedColor,
         size: this.selectedThickness,
         hotspot: 'center'
       })
+    },
+    setAdmin () {
+      this.$bus.emit('set-admin')
     }
   }
 }
@@ -43,8 +48,6 @@ function componentLoaded (roomId, _this) {
   var $swal = _this.$swal
   var $router = _this.$router
   var socket = _this.socket
-
-  var isAllowed = false
 
   var isPenDown = false
   var snapshot
@@ -86,7 +89,8 @@ function componentLoaded (roomId, _this) {
   function registerSocketListeners () {
     socket.on('admin', function () {
       _this.isAllowed = true
-      isAllowed = true
+      console.log('socket admin')
+      _this.setAdmin()
     })
     socket.on('draw', function (data) {
       drawMessageListener(data)
@@ -108,7 +112,7 @@ function componentLoaded (roomId, _this) {
             'User has the permission',
             'success'
           )
-          isAllowed = false
+          _this.isAllowed = false
           socket.emit('answerForBoard', {answer: true, socketId: data.socketId})
         } else {
           $swal(
@@ -127,18 +131,18 @@ function componentLoaded (roomId, _this) {
           text: 'You can draw on the board',
           type: 'success'
         })
-        isAllowed = true
+        _this.isAllowed = true
       } else {
         $swal({
           title: 'Permission denied',
           text: 'You can\'t draw on the board',
           type: 'error'
         })
-        isAllowed = false
+        _this.isAllowed = false
       }
     })
     socket.on('resetBoard', function (data) {
-      isAllowed = true
+      _this.isAllowed = true
       $swal(
         'You took the pen back',
         'You can start drawing again',
@@ -146,7 +150,7 @@ function componentLoaded (roomId, _this) {
       )
     })
     socket.on('lostPermission', function () {
-      isAllowed = false
+      _this.isAllowed = false
       $swal(
         'You lost permission',
         'You can no longer draw',
@@ -167,7 +171,7 @@ function componentLoaded (roomId, _this) {
   }
 
   function getType () {
-    return 'point'
+    return _this.selectedType
   }
 
   function askForTurn () {
@@ -286,7 +290,7 @@ function componentLoaded (roomId, _this) {
   }
 
   function penDown (x, y) {
-    if (isAllowed) {
+    if (_this.isAllowed) {
       isPenDown = true
       localPen.x = x
       localPen.y = y
@@ -304,7 +308,7 @@ function componentLoaded (roomId, _this) {
   }
 
   function penMove (x, y) {
-    if (isPenDown && isAllowed) {
+    if (isPenDown && _this.isAllowed) {
       switch (getType()) {
         case 'point':
           drawPath(_this.selectedColor, _this.selectedThickness, 'move', x, y)
@@ -319,7 +323,7 @@ function componentLoaded (roomId, _this) {
   }
 
   function penUp (x, y) {
-    if (isPenDown && isAllowed) {
+    if (isPenDown && _this.isAllowed) {
       switch (getType()) {
         case 'point':
           drawPath(_this.selectedColor, _this.selectedThickness, 'end', x, y)
