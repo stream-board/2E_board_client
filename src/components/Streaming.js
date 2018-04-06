@@ -28,6 +28,16 @@ export default {
         'channel': channel
       })
     }, 
+    toggleAudio () {
+      console.log('Muting myself')
+      local_media_stream.getAudioTracks()[0].enabled =
+        !(local_media_stream.getAudioTracks()[0].enabled);
+    },
+    toggleVideo () {
+      console.log('Disabling myself video')
+      local_media_stream.getVideoTracks()[0].enabled =
+        !(local_media_stream.getVideoTracks()[0].enabled);
+    },
     setSpeakers (speakers, master) {
       console.log('rendering speakers')
       if (!roomMaster) {
@@ -436,6 +446,18 @@ function componentLoaded () {
       'channel': channel
     })
   }  
+
+  function toggleAudio () {
+    console.log('Muting myself')
+    local_media_stream.getAudioTracks()[0].enabled =
+         !(local_media_stream.getAudioTracks()[0].enabled);
+  }
+
+  function toggleVideo () {
+    console.log('Disabling myself video')
+    local_media_stream.getVideoTracks()[0].enabled =
+         !(local_media_stream.getVideoTracks()[0].enabled);
+  }
 
 
   function setSpeakers (speakers, master) {

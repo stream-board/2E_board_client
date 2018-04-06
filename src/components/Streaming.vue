@@ -8,6 +8,8 @@
         <button @click="amIMaster()">Soy administrador?</button>
         <button @click="askForWord()">Pedir la palabra</button>
         <button @click="muteAll()">Silenciar clientes</button>
+        <button @click="toggleAudio()">On/Off audio</button>
+        <button @click="toggleVideo()">On/Off video</button>
     </div>
   </div>
 </template>
