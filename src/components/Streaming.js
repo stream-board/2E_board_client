@@ -30,8 +30,16 @@ export default {
     }, 
     toggleAudio () {
       console.log('Muting myself')
+      if(local_media_stream.getAudioTracks()[0].enabled){
+        $('#local_video').css('border', '9px solid red');
+        signaling_socket.emit('relayMuteMyself', {'channel': channel});
+      }else{
+        $('#local_video').css('border', '')
+        signaling_socket.emit('relayUnMuteMyself', {'channel': channel});
+      }
       local_media_stream.getAudioTracks()[0].enabled =
         !(local_media_stream.getAudioTracks()[0].enabled);
+
     },
     toggleVideo () {
       console.log('Disabling myself video')
@@ -377,6 +385,16 @@ function componentLoaded () {
     initVars();
   });
 
+  signaling_socket.on('mute', function(config) {
+    var toMute = config.peer_id;
+    console.log("unmuting" + toMute);
+    $('#' + toMute).css('border', '9px solid red');
+  });
+  signaling_socket.on('unMute', function(config) {
+    var toUnMute = config.peer_id;
+    console.log("unmuting" + toUnMute);
+    $('#' + toUnMute).css('border', '');
+  });
   /***********************/
   /** Local media stuff **/
   /***********************/
