@@ -57,6 +57,9 @@ Vue.use(Vuetify, {
     warning: '#ffeb3b',
     info: '#2196f3',
     success: '#4caf50'
+  },
+  icons: {
+    'eraser': 'sb-eraser'
   }
 })
 

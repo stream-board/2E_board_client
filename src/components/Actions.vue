@@ -73,12 +73,22 @@
         </v-menu>
       </v-flex>
       <v-flex xs1>
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="changeType()">
-            <v-icon>brush</v-icon>
-          </v-btn>
-          <span>Change type</span>
-        </v-tooltip>
+        <v-menu offset-y top nudge-left="35" nudge-top="15">
+          <v-tooltip top slot="activator">
+            <v-btn small class="elevation-10" slot="activator" outline fab color="primary">
+              <v-icon>{{selectedType}}</v-icon>
+            </v-btn>
+            <span>Change type</span>
+          </v-tooltip>
+          <v-list>
+            <v-list-tile v-for="item in types" :key="item.value" @click="changeType(item)">
+              <v-list-tile-action>
+                <v-icon>{{item.icon}}</v-icon>
+              </v-list-tile-action>
+              <v-list-tile-title>{{ item.name }}</v-list-tile-title>
+            </v-list-tile>
+          </v-list>
+        </v-menu>
       </v-flex>
       <v-flex xs1>
         <v-menu offset-y top nudge-left="50" nudge-top="15">
@@ -119,6 +129,8 @@
 </template>
 
 <script>
+import { COLORS, THICKNESSES, TYPES } from '../constants/constants'
+
 export default {
   name: 'Actions',
   data: () => ({
@@ -126,106 +138,10 @@ export default {
     cam: true,
     selectedColor: '#f44336',
     selectedThickness: '8px',
-    colors: [
-      {
-        name: 'Red',
-        value: '#f44336'
-      },
-      {
-        name: 'Pink',
-        value: '#e91e63'
-      },
-      {
-        name: 'Purple',
-        value: '#9c27b0'
-      },
-      {
-        name: 'Deep Purple',
-        value: '#673ab7'
-      },
-      {
-        name: 'Indigo',
-        value: '#3f51b5'
-      },
-      {
-        name: 'Blue',
-        value: '#2196f3'
-      },
-      {
-        name: 'Cyan',
-        value: '#00bcd4'
-      },
-      {
-        name: 'Teal',
-        value: '#009688'
-      },
-      {
-        name: 'Green',
-        value: '#4caf50'
-      },
-      {
-        name: 'Lime',
-        value: '#cddc39'
-      },
-      {
-        name: 'Yellow',
-        value: '#ffeb3b'
-      },
-      {
-        name: 'Orange',
-        value: '#ff9800'
-      },
-      {
-        name: 'Brown',
-        value: '#795548'
-      },
-      {
-        name: 'Grey',
-        value: '#9e9e9e'
-      },
-      {
-        name: 'Blue Grey',
-        value: '#607d8b'
-      },
-      {
-        name: 'Black',
-        value: '#000000'
-      }
-    ],
-    thicknesses: [
-      {
-        name: '8px',
-        value: 8
-      },
-      {
-        name: '12px',
-        value: 12
-      },
-      {
-        name: '16px',
-        value: 16
-      },
-      {
-        name: '20px',
-        value: 20
-      },
-      {
-        name: '24px',
-        value: 24
-      },
-      {
-        name: '28px',
-        value: 28
-      },
-      {
-        name: '32px',
-        value: 32
-      },
-      {
-        name: '36px',
-        value: 36
-      }
-    ]
+    selectedType: 'brush',
+    colors: COLORS,
+    thicknesses: THICKNESSES,
+    types: TYPES
   }),
   props: [
     'room'
@@ -261,7 +177,8 @@ export default {
       this.$bus.emit('change-color', color)
       this.selectedColor = color
     },
-    changeType () {
+    changeType (type) {
+      this.selectedType = type.icon
       console.log('Change type')
     },
     changeThickness (thickness) {
