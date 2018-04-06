@@ -43,6 +43,7 @@
           <span>Hide cam</span>
         </v-tooltip>
       </v-flex>
+      <div class="divider-actions"></div>
       <v-flex xs1>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
@@ -51,14 +52,25 @@
           <span>Ask for board</span>
         </v-tooltip>
       </v-flex>
-      <div class="divider-actions"></div>
       <v-flex xs1>
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="changeColor()">
-            <v-icon>palette</v-icon>
-          </v-btn>
-          <span>Change color</span>
-        </v-tooltip>
+        <v-menu offset-y nudge-left="120" nudge-top="15" top>
+          <v-tooltip top slot="activator">
+            <v-btn small class="elevation-10" slot="activator" dark fab v-bind:style="{ backgroundColor: selectedColor}">
+              <v-icon>palette</v-icon>
+            </v-btn>
+            <span>Change color</span>
+          </v-tooltip>
+          <v-container id="color-container" grid-list-sm>
+            <v-layout row wrap>
+              <v-flex xs3 v-for="color in colors" :key="color.value">
+                <v-tooltip top>
+                  <v-btn slot="activator" fab dark small v-bind:style="{ backgroundColor: color.value}" @click="changeColor(color.value)"></v-btn>
+                  <span>{{color.name}}</span>
+                </v-tooltip>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-menu>
       </v-flex>
       <v-flex xs1>
         <v-tooltip top>
@@ -69,12 +81,21 @@
         </v-tooltip>
       </v-flex>
       <v-flex xs1>
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="changeThickness()">
-            <v-icon>lens</v-icon>
-          </v-btn>
-          <span>Change thickness</span>
-        </v-tooltip>
+        <v-menu offset-y top nudge-left="50" nudge-top="15">
+          <v-tooltip top slot="activator">
+            <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="changeThickness()">
+              <v-icon v-bind:style="{fontSize: selectedThickness}">lens</v-icon>
+            </v-btn>
+            <span>Change thickness</span>
+          </v-tooltip>
+          <v-container id="thickness-container" grid-list-sm>
+            <v-layout row wrap>
+              <v-flex xs6 v-for="option in thicknesses" :key="option.value">
+                <v-btn fab dark color="black" v-bind:style="{width: option.name, height: option.name}" @click="changeThickness(option)"></v-btn>
+              </v-flex>
+            </v-layout>
+          </v-container>
+        </v-menu>
       </v-flex>
       <v-flex xs1>
         <v-tooltip top>
@@ -102,7 +123,109 @@ export default {
   name: 'Actions',
   data: () => ({
     mic: true,
-    cam: true
+    cam: true,
+    selectedColor: '#f44336',
+    selectedThickness: '8px',
+    colors: [
+      {
+        name: 'Red',
+        value: '#f44336'
+      },
+      {
+        name: 'Pink',
+        value: '#e91e63'
+      },
+      {
+        name: 'Purple',
+        value: '#9c27b0'
+      },
+      {
+        name: 'Deep Purple',
+        value: '#673ab7'
+      },
+      {
+        name: 'Indigo',
+        value: '#3f51b5'
+      },
+      {
+        name: 'Blue',
+        value: '#2196f3'
+      },
+      {
+        name: 'Cyan',
+        value: '#00bcd4'
+      },
+      {
+        name: 'Teal',
+        value: '#009688'
+      },
+      {
+        name: 'Green',
+        value: '#4caf50'
+      },
+      {
+        name: 'Lime',
+        value: '#cddc39'
+      },
+      {
+        name: 'Yellow',
+        value: '#ffeb3b'
+      },
+      {
+        name: 'Orange',
+        value: '#ff9800'
+      },
+      {
+        name: 'Brown',
+        value: '#795548'
+      },
+      {
+        name: 'Grey',
+        value: '#9e9e9e'
+      },
+      {
+        name: 'Blue Grey',
+        value: '#607d8b'
+      },
+      {
+        name: 'Black',
+        value: '#000000'
+      }
+    ],
+    thicknesses: [
+      {
+        name: '8px',
+        value: 8
+      },
+      {
+        name: '12px',
+        value: 12
+      },
+      {
+        name: '16px',
+        value: 16
+      },
+      {
+        name: '20px',
+        value: 20
+      },
+      {
+        name: '24px',
+        value: 24
+      },
+      {
+        name: '28px',
+        value: 28
+      },
+      {
+        name: '32px',
+        value: 32
+      },
+      {
+        name: '36px',
+        value: 36
+      }
+    ]
   }),
   props: [
     'room'
@@ -113,30 +236,37 @@ export default {
     },
     askForMic () {
       console.log('Asked for mic')
+      this.$bus.emit('ask-for-mic')
     },
     muteMic () {
       this.mic = false
+      this.$bus.emit('mute-mic')
     },
     unmuteMic () {
       this.mic = true
+      this.$bus.emit('unmute-mic')
     },
     useCam () {
       this.cam = true
+      this.$bus.emit('activate-cam')
     },
     blockCam () {
       this.cam = false
+      this.$bus.emit('block-cam')
     },
     askForBoard () {
-      console.log('Asked for board')
+      this.$bus.emit('ask-for-turn')
     },
-    changeColor () {
-      console.log('Change color')
+    changeColor (color) {
+      this.$bus.emit('change-color', color)
+      this.selectedColor = color
     },
     changeType () {
       console.log('Change type')
     },
-    changeThickness () {
-      console.log('Change thickness')
+    changeThickness (thickness) {
+      this.$bus.emit('change-thickness', thickness)
+      this.selectedThickness = thickness.name
     },
     takeScreenshot () {
       console.log('Screenshot')
@@ -154,5 +284,13 @@ export default {
     height: 100%;
     width: 0.1%;
     background-color: #1b627c;
+  }
+  #color-container{
+    width: 20vw;
+    background-color: #FFF;
+  }
+  #thickness-container{
+    width: 10vw;
+    background-color: #FFF;
   }
 </style>

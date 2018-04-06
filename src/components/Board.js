@@ -1,28 +1,53 @@
 export default {
   name: 'Board',
+  data: () => ({
+    socket: null,
+    isAllowed: 'false',
+    selectedColor: '#f44336',
+    selectedThickness: 8
+  }),
   mounted: function () {
-    componentLoaded(this.$route.params.roomid, this.$swal, this.$router)
+    let user = JSON.parse(localStorage.getItem('user'))
+    let URL = `ec2-34-228-226-216.compute-1.amazonaws.com:4002?room=${this.$route.params.roomid}&nick=${user.nickname}&id=${user.id}`
+    // eslint-disable-next-line
+    this.socket =  io(URL)
+    this.$bus.on('ask-for-turn', this.askForTurn)
+    this.$bus.on('change-color', (data) => {
+      this.selectedColor = data
+      this.updateCursor()
+    })
+    this.$bus.on('change-thickness', (data) => {
+      this.selectedThickness = data.value
+      this.updateCursor()
+    })
+    componentLoaded(this.$route.params.roomid, this)
+    window.setTimeout(this.updateCursor(), 500)
+  },
+  methods: {
+    askForTurn () {
+      this.socket.emit('askForBoard')
+    },
+    updateCursor () {
+      console.log(this.selectedThickness)
+      console.log(this.selectedColor)
+      $('#board').awesomeCursor('circle', {
+        color: this.selectedColor,
+        size: this.selectedThickness,
+        hotspot: 'center'
+      })
+    }
   }
 }
 
-function componentLoaded (roomId, swal, router) {
-  let user = JSON.parse(localStorage.getItem('user'))
-  const URL = `ec2-34-228-226-216.compute-1.amazonaws.com:4002?room=${roomId}&nick=${user.nickname}&id=${user.id}`
-  var $swal = swal
-  var $router = router
-  // eslint-disable-next-line
-  const socket = io(URL)
+function componentLoaded (roomId, _this) {
+  var $swal = _this.$swal
+  var $router = _this.$router
+  var socket = _this.socket
 
   var isAllowed = false
 
   var isPenDown = false
   var snapshot
-
-  var defaultLineColor = '#000000'
-  var defaultLineThickness = 3
-
-  var localLineColor = defaultLineColor
-  var localLineThickness = defaultLineThickness
 
   var canvas
   var context
@@ -36,7 +61,6 @@ function componentLoaded (roomId, swal, router) {
   function init () {
     registerSocketListeners()
     initCanvas()
-    initInput()
     registerInputListeners()
   }
 
@@ -50,23 +74,6 @@ function componentLoaded (roomId, swal, router) {
     context.lineCap = 'round'
   }
 
-  function initInput () {
-    $('#colorpicker').spectrum({
-      color: '#000',
-      change: function (color) {
-        let selectedColor = color.toHexString()
-        localLineColor = selectedColor
-      }
-    })
-
-    var thicknessSelect = document.getElementById('thick-select')
-    thicknessSelect.value = defaultLineThickness
-
-    thicknessSelect.addEventListener('change', function (evt) {
-      localLineThickness = evt.target.value
-    })
-  }
-
   function registerInputListeners () {
     canvas.onmousedown = pointerDownListener
     document.onmousemove = pointerMoveListener
@@ -74,14 +81,11 @@ function componentLoaded (roomId, swal, router) {
     document.ontouchstart = touchDownListener
     document.ontouchmove = touchMoveListener
     document.ontouchend = touchUpListener
-    document.getElementById('ask-button').onclick = askForTurn
-    document.getElementById('reset-button').onclick = resetPermissions
   }
 
   function registerSocketListeners () {
     socket.on('admin', function () {
-      console.log('admin')
-      document.getElementById('actions').hidden = true
+      _this.isAllowed = true
       isAllowed = true
     })
     socket.on('draw', function (data) {
@@ -106,7 +110,6 @@ function componentLoaded (roomId, swal, router) {
           )
           isAllowed = false
           socket.emit('answerForBoard', {answer: true, socketId: data.socketId})
-          document.getElementById('admin-actions').hidden = false
         } else {
           $swal(
             'Disapproved',
@@ -125,7 +128,6 @@ function componentLoaded (roomId, swal, router) {
           type: 'success'
         })
         isAllowed = true
-        document.getElementById('actions').hidden = true
       } else {
         $swal({
           title: 'Permission denied',
@@ -142,7 +144,6 @@ function componentLoaded (roomId, swal, router) {
         'You can start drawing again',
         'success'
       )
-      document.getElementById('admin-actions').hidden = true
     })
     socket.on('lostPermission', function () {
       isAllowed = false
@@ -151,7 +152,6 @@ function componentLoaded (roomId, swal, router) {
         'You can no longer draw',
         'error'
       )
-      document.getElementById('actions').hidden = false
     })
     socket.on('hostLeft', function () {
       $swal({
@@ -167,7 +167,7 @@ function componentLoaded (roomId, swal, router) {
   }
 
   function getType () {
-    return document.querySelector('.typeCheckbox:checked').value
+    return 'point'
   }
 
   function askForTurn () {
@@ -200,11 +200,11 @@ function componentLoaded (roomId, swal, router) {
   }
 
   function broadcastPath (event, coords) {
-    socket.emit('draw', { type: 'path', event: event, coords: coords, color: localLineColor, thickness: localLineThickness })
+    socket.emit('draw', { type: 'path', event: event, coords: coords, color: _this.selectedColor, thickness: _this.selectedThickness })
   }
 
   function broadcastLine (coords) {
-    socket.emit('draw', { type: 'line', color: localLineColor, thickness: localLineThickness, coords: coords })
+    socket.emit('draw', { type: 'line', color: _this.selectedColor, thickness: _this.selectedThickness, coords: coords })
   }
 
   function touchDownListener (e) {
@@ -245,7 +245,6 @@ function componentLoaded (roomId, swal, router) {
 
     var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
     var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
-    console.log(canvas)
 
     penDown(mouseX, mouseY)
 
@@ -294,7 +293,7 @@ function componentLoaded (roomId, swal, router) {
 
       switch (getType()) {
         case 'point':
-          drawPath(localLineColor, localLineThickness, 'start', x, y)
+          drawPath(_this.selectedColor, _this.selectedThickness, 'start', x, y)
           broadcastPath('start', localPen)
           break
         case 'line':
@@ -308,12 +307,12 @@ function componentLoaded (roomId, swal, router) {
     if (isPenDown && isAllowed) {
       switch (getType()) {
         case 'point':
-          drawPath(localLineColor, localLineThickness, 'move', x, y)
+          drawPath(_this.selectedColor, _this.selectedThickness, 'move', x, y)
           broadcastPath('move', { x: x, y: y })
           break
         case 'line':
           restoreSnapshot()
-          drawLine(localLineColor, localLineThickness, localPen.x, localPen.y, x, y)
+          drawLine(_this.selectedColor, _this.selectedThickness, localPen.x, localPen.y, x, y)
           break
       }
     }
@@ -323,12 +322,12 @@ function componentLoaded (roomId, swal, router) {
     if (isPenDown && isAllowed) {
       switch (getType()) {
         case 'point':
-          drawPath(localLineColor, localLineThickness, 'end', x, y)
+          drawPath(_this.selectedColor, _this.selectedThickness, 'end', x, y)
           broadcastPath('end', { x: x, y: y })
           break
         case 'line':
           restoreSnapshot()
-          drawLine(localLineColor, localLineThickness, localPen.x, localPen.y, x, y)
+          drawLine(_this.selectedColor, _this.selectedThickness, localPen.x, localPen.y, x, y)
           broadcastLine({ start: { x: localPen.x, y: localPen.y }, end: { x: x, y: y } })
           break
       }

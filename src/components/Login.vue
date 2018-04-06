@@ -146,6 +146,9 @@ export default {
     position: relative;
     top: 10%;
     margin-bottom: 30%;
+    max-width: 95%;
+    min-width: 95%;
+    left: 2.5%;
 }
 #banner-phrase{
     position: absolute;
