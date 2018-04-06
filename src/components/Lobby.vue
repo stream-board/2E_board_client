@@ -54,7 +54,7 @@
       <img src="@/assets/images/logo-white.png" id="logo">
     </v-toolbar-title>
     <v-spacer></v-spacer>
-    <v-btn icon>
+    <v-btn icon @click="logout()">
       <v-icon>exit_to_app</v-icon>
     </v-btn>
   </v-toolbar>
@@ -66,9 +66,9 @@
         </v-flex>
         <v-flex xs12 text-xs-center>
           <v-dialog v-model="joinDialog" persistent max-width="500px">
-            <v-btn color="primary" slot="activator">JOIN ROOM</v-btn>
+            <v-btn color="primary" slot="activator">JOIN A ROOM</v-btn>
             <v-card>
-              <v-card-title class="headline">Join Room</v-card-title>
+              <v-card-title class="headline">Join a Room</v-card-title>
               <v-card-text>
                 <v-text-field
                   label="Room Id"
@@ -158,7 +158,7 @@
 </template>
 
 <script>
-import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY } from '../constants/graphql'
+import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION } from '../constants/graphql'
 
 export default {
   name: 'Lobby',
@@ -300,6 +300,24 @@ export default {
         return true
       }
       return false
+    },
+    logout () {
+      let user = JSON.parse(localStorage.getItem('user'))
+      this.$apollo.mutate({
+        mutation: DELETE_SESSION_MUTATION,
+        variables: {
+          uid: user.email,
+          token: user.token,
+          client: user.client
+        }
+      }).then((response) => {
+        localStorage.setItem('user', '')
+        this.$router.push({path: `/login`})
+      }).catch((error) => {
+        console.log(error)
+        this.message = 'Error logging out'
+        this.snackbar = true
+      })
     }
   },
   computed: {

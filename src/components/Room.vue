@@ -1,14 +1,14 @@
 <template>
   <div class="room">
-    <h1 class="name">Room: {{ $route.params.roomid }}</h1>
     <board id="board-container"></board>
-    <actions id="actions-container"></actions>
+    <actions :room="room" id="actions-container"></actions>
     <cameras id="video-container"></cameras>
     <chat id="chat-container"></chat>
   </div>
 </template>
 
 <script>
+import { ROOM_BY_ID_QUERY } from '../constants/graphql'
 import Board from '@/components/Board.vue'
 import Actions from '@/components/Actions.vue'
 import Chat from '@/components/Chat.vue'
@@ -21,6 +21,21 @@ export default {
     'actions': Actions,
     'chat': Chat,
     'cameras': Video
+  },
+  data: () => ({
+    room: {}
+  }),
+  created () {
+    this.$apollo.query({
+      query: ROOM_BY_ID_QUERY,
+      variables: {
+        id: this.$route.params.roomid
+      }
+    }).then((result) => {
+      this.room = result.data.roomById
+    }).catch((error) => {
+      console.log(error)
+    })
   }
 }
 </script>

@@ -20,6 +20,9 @@ export default {
   beforeRouteEnter (to, from, next) {
     next(vm => {
       let userString = localStorage.getItem('user')
+      if (userString == null) {
+        userString = ''
+      }
       if (userString !== '') {
         let user = JSON.parse(userString)
         console.log(user)

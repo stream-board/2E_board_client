@@ -35,6 +35,21 @@ export const ALL_ROOMS_QUERY = gql`
   }
 `
 
+export const ROOM_BY_ID_QUERY = gql`
+  query RoomByIdQuery($id: Int!){
+    roomById(id: $id){
+      nameRoom,
+      descriptionRoom,
+      idRoom,
+      Participants{
+        name,
+        nickname,
+        image
+      }
+    }
+  }
+`
+
 // Mutations
 
 export const CREATE_SESSION_MUTATION = gql`
@@ -92,6 +107,18 @@ mutation DeleteRoomMutation($idOwner: Int!, $idRoom: Int!) {
     }
   ) {
     idRoom
+  }
+}
+`
+
+export const DELETE_SESSION_MUTATION = gql`
+mutation DeleteSessionMutation($uid: String!, $token: String!, $client: String!) {
+  deleteSession(headersSession: {
+    uid: $uid,
+    token: $token,
+    client: $client
+  }){
+    success
   }
 }
 `

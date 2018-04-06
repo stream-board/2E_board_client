@@ -1,15 +1,12 @@
 <template>
   <v-container fluid grid-list-md text-xs-center class="actions-container">
-    <v-layout row>
-      <v-flex xs1>
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="exitToLobby()">
-            <v-icon>call_end</v-icon>
-          </v-btn>
-          <span>Go to lobby</span>
-        </v-tooltip>
+    <v-layout row fill-height align-center>
+      <v-flex xs3 justify-start>
+        <h1 class="title white--text">{{room.nameRoom}}</h1>
+        <span class="body-2 grey--text">Room id: {{room.idRoom}}</span>
       </v-flex>
       <v-spacer></v-spacer>
+      <div class="divider-actions"></div>
       <v-flex xs1>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForMic()">
@@ -46,7 +43,7 @@
           <span>Hide cam</span>
         </v-tooltip>
       </v-flex>
-      <v-flex xs1 offset-xs1>
+      <v-flex xs1>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
             <v-icon>create</v-icon>
@@ -54,6 +51,7 @@
           <span>Ask for board</span>
         </v-tooltip>
       </v-flex>
+      <div class="divider-actions"></div>
       <v-flex xs1>
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="changeColor()">
@@ -86,6 +84,15 @@
           <span>Take screenshot</span>
         </v-tooltip>
       </v-flex>
+      <div class="divider-actions"></div>
+      <v-flex xs1>
+        <v-tooltip top>
+          <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="exitToLobby()">
+            <v-icon>call_end</v-icon>
+          </v-btn>
+          <span>Go to lobby</span>
+        </v-tooltip>
+      </v-flex>
     </v-layout>
   </v-container>
 </template>
@@ -97,6 +104,9 @@ export default {
     mic: true,
     cam: true
   }),
+  props: [
+    'room'
+  ],
   methods: {
     exitToLobby () {
       this.$router.push({path: '/app'})
@@ -139,5 +149,10 @@ export default {
 <style scoped>
   .actions-container{
     background-color: #174557;
+  }
+  .divider-actions{
+    height: 100%;
+    width: 0.1%;
+    background-color: #1b627c;
   }
 </style>
