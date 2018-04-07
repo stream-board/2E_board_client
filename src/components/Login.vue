@@ -144,7 +144,7 @@ export default {
 }
 #logo{
     position: relative;
-    top: 10%;
+    top: 20%;
     margin-bottom: 30%;
     max-width: 95%;
     min-width: 95%;

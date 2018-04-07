@@ -15,6 +15,8 @@
     "apollo-client": "^2.2.8",
     "apollo-link": "^1.2.1",
     "apollo-link-http": "^1.5.3",
+    "emoji-js": "^3.4.0",
+    "emoji-mart-vue": "^2.4.5",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.8.0",
     "jquery-awesome-cursor": "^0.3.1",

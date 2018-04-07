@@ -46,7 +46,7 @@
       <div class="divider-actions"></div>
       <v-flex xs1 v-if="admin">
         <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
+          <v-btn small class="elevation-10" :disabled="isAllowed" slot="activator" outline fab color="primary" @click="takeBackPencil()">
             <v-icon>mdi-pencil-lock</v-icon>
           </v-btn>
           <span>Take back pencil</span>
@@ -54,7 +54,7 @@
       </v-flex>
       <v-flex xs1 v-else>
         <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForBoard()">
+          <v-btn small class="elevation-10" :disabled="isAllowed" slot="activator" outline fab color="primary" @click="askForBoard()">
             <v-icon>create</v-icon>
           </v-btn>
           <span>Ask for board</span>
@@ -117,10 +117,10 @@
       </v-flex>
       <v-flex xs1>
         <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="takeScreenshot()">
-            <v-icon>wallpaper</v-icon>
+          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="clearBoard()">
+            <v-icon>delete</v-icon>
           </v-btn>
-          <span>Take screenshot</span>
+          <span>Clear Board</span>
         </v-tooltip>
       </v-flex>
       <div class="divider-actions"></div>
@@ -145,6 +145,7 @@ export default {
     mic: true,
     cam: true,
     admin: false,
+    isAllowed: false,
     selectedColor: '#f44336',
     selectedThickness: '8px',
     selectedType: 'brush',
@@ -157,8 +158,10 @@ export default {
   ],
   mounted () {
     this.$bus.on('set-admin', () => {
-      console.log('created admin')
       this.admin = true
+    })
+    this.$bus.on('change-permissions', (data) => {
+      this.isAllowed = data
     })
   },
   methods: {
@@ -186,8 +189,10 @@ export default {
       this.$bus.emit('block-cam')
     },
     askForBoard () {
-      console.log(this.admin)
       this.$bus.emit('ask-for-turn')
+    },
+    takeBackPencil () {
+      this.$bus.emit('take-back-pencil')
     },
     changeColor (color) {
       this.$bus.emit('change-color', color)
@@ -201,8 +206,8 @@ export default {
       this.$bus.emit('change-thickness', thickness)
       this.selectedThickness = thickness.name
     },
-    takeScreenshot () {
-      console.log('Screenshot')
+    clearBoard () {
+      this.$bus.emit('clear-board')
     }
   }
 }
@@ -212,6 +217,7 @@ export default {
 <style scoped>
   .actions-container{
     background-color: #174557;
+    border-left: 1px solid #1b627c;
   }
   .divider-actions{
     height: 100%;

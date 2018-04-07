@@ -1,6 +1,5 @@
 <template>
   <v-container class="video-container">
-    <p>VIDEO</p>
   </v-container>
 </template>
 
@@ -13,6 +12,6 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
   .video-container{
-    background-color: #F00
+    background-color: #174557;
   }
 </style>

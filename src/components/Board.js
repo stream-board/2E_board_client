@@ -13,6 +13,7 @@ export default {
     // eslint-disable-next-line
     this.socket =  io(URL)
     this.$bus.on('ask-for-turn', this.askForTurn)
+    this.$bus.on('take-back-pencil', this.takeBackPencil)
     this.$bus.on('change-color', (data) => {
       this.selectedColor = data
       this.updateCursor()
@@ -24,12 +25,18 @@ export default {
     this.$bus.on('change-type', (data) => {
       this.selectedType = data
     })
+    this.$bus.on('clear-board', () => {
+      this.clearBoard()
+    })
     componentLoaded(this.$route.params.roomid, this)
     this.updateCursor()
   },
   methods: {
     askForTurn () {
       this.socket.emit('askForBoard')
+    },
+    takeBackPencil () {
+      this.socket.emit('resetBoard')
     },
     updateCursor () {
       $('#board').awesomeCursor('circle', {
@@ -40,6 +47,12 @@ export default {
     },
     setAdmin () {
       this.$bus.emit('set-admin')
+    },
+    changePermissions (value) {
+      this.$bus.emit('change-permissions', value)
+    },
+    clearBoard () {
+      this.socket.emit('clear')
     }
   }
 }
@@ -89,11 +102,14 @@ function componentLoaded (roomId, _this) {
   function registerSocketListeners () {
     socket.on('admin', function () {
       _this.isAllowed = true
-      console.log('socket admin')
       _this.setAdmin()
+      _this.changePermissions(true)
     })
     socket.on('draw', function (data) {
       drawMessageListener(data)
+    })
+    socket.on('clear', function () {
+      clearBoard()
     })
     socket.on('askForBoard', function (data) {
       $swal({
@@ -113,6 +129,7 @@ function componentLoaded (roomId, _this) {
             'success'
           )
           _this.isAllowed = false
+          _this.changePermissions(false)
           socket.emit('answerForBoard', {answer: true, socketId: data.socketId})
         } else {
           $swal(
@@ -131,6 +148,7 @@ function componentLoaded (roomId, _this) {
           text: 'You can draw on the board',
           type: 'success'
         })
+        _this.changePermissions(true)
         _this.isAllowed = true
       } else {
         $swal({
@@ -138,10 +156,12 @@ function componentLoaded (roomId, _this) {
           text: 'You can\'t draw on the board',
           type: 'error'
         })
+        _this.changePermissions(false)
         _this.isAllowed = false
       }
     })
     socket.on('resetBoard', function (data) {
+      _this.changePermissions(true)
       _this.isAllowed = true
       $swal(
         'You took the pen back',
@@ -150,6 +170,7 @@ function componentLoaded (roomId, _this) {
       )
     })
     socket.on('lostPermission', function () {
+      _this.changePermissions(false)
       _this.isAllowed = false
       $swal(
         'You lost permission',
@@ -168,18 +189,14 @@ function componentLoaded (roomId, _this) {
         $router.push({path: '/'})
       })
     })
+
+    _this.$bus.on('clear-board', () => {
+      clearBoard()
+    })
   }
 
   function getType () {
     return _this.selectedType
-  }
-
-  function askForTurn () {
-    socket.emit('askForBoard')
-  }
-
-  function resetPermissions () {
-    socket.emit('resetBoard')
   }
 
   function takeSnapshot () {
@@ -190,9 +207,15 @@ function componentLoaded (roomId, _this) {
     context.putImageData(snapshot, 0, 0)
   }
 
+  function clearBoard () {
+    context.fillStyle = '#FFFFFF';
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
   function drawMessageListener (data) {
     switch (data.type) {
       case 'path':
+        console.log(data.color)
         drawPath(data.color, data.thickness, data.event, data.coords.x, data.coords.y)
         break
       case 'line':
@@ -209,6 +232,10 @@ function componentLoaded (roomId, _this) {
 
   function broadcastLine (coords) {
     socket.emit('draw', { type: 'line', color: _this.selectedColor, thickness: _this.selectedThickness, coords: coords })
+  }
+
+  function broadcastErase (event, coords) {
+    socket.emit('draw', { type: 'path', event: event, coords: coords, color: '#FFFFFF', thickness: _this.selectedThickness })
   }
 
   function touchDownListener (e) {
@@ -303,6 +330,10 @@ function componentLoaded (roomId, _this) {
         case 'line':
           takeSnapshot()
           break
+        case 'eraser':
+          drawPath('#FFFFFF', _this.selectedThickness, 'start', x, y)
+          broadcastErase('start', localPen)
+          break
       }
     }
   }
@@ -317,6 +348,10 @@ function componentLoaded (roomId, _this) {
         case 'line':
           restoreSnapshot()
           drawLine(_this.selectedColor, _this.selectedThickness, localPen.x, localPen.y, x, y)
+          break
+        case 'eraser':
+          drawPath('#FFFFFF', _this.selectedThickness, 'move', x, y)
+          broadcastErase('move', { x: x, y: y })
           break
       }
     }
@@ -333,6 +368,10 @@ function componentLoaded (roomId, _this) {
           restoreSnapshot()
           drawLine(_this.selectedColor, _this.selectedThickness, localPen.x, localPen.y, x, y)
           broadcastLine({ start: { x: localPen.x, y: localPen.y }, end: { x: x, y: y } })
+          break
+        case 'eraser':
+          drawPath('#FFFFFF', _this.selectedThickness, 'end', x, y)
+          broadcastErase('end', { x: x, y: y })
           break
       }
     }
