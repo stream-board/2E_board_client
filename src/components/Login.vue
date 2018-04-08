@@ -11,6 +11,8 @@
                 v-model="email"
                 :rules="emailRules"
                 required
+                autofocus
+                @keyup.enter="submit"
                 ></v-text-field>
                 <v-text-field
                 label="Enter your password"
@@ -22,6 +24,7 @@
                 :append-icon-cb="() => (hidden = !hidden)"
                 :type="hidden ? 'password' : 'text'"
                 required
+                @keyup.enter="submit"
                 ></v-text-field>
                 <v-btn fab dark id="login-button" @click="submit">
                     <v-icon dark>send</v-icon>

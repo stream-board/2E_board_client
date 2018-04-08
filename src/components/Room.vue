@@ -3,7 +3,15 @@
     <board id="board-container"></board>
     <actions :room="room" id="actions-container"></actions>
     <cameras id="video-container"></cameras>
-    <chat id="chat-container"></chat>
+    <chat :room="room" :participants="room.Participants" id="chat-container"></chat>
+    <v-snackbar
+      color="info"
+      v-model="snackbar"
+      top
+      >
+      {{ message }}
+      <v-btn dark flat @click.native="snackbar = false"><v-icon>close</v-icon></v-btn>
+    </v-snackbar>
   </div>
 </template>
 
@@ -23,7 +31,10 @@ export default {
     'cameras': Video
   },
   data: () => ({
-    room: {}
+    room: {},
+    user: JSON.parse(localStorage.getItem('user')),
+    message: '',
+    snackbar: false
   }),
   created () {
     this.$apollo.query({
@@ -33,8 +44,20 @@ export default {
       }
     }).then((result) => {
       this.room = result.data.roomById
+      this.message = `Welcome to ${this.room.nameRoom}`
+      this.snackbar = true
     }).catch((error) => {
       console.log(error)
+    })
+    this.$bus.on('new-participant', (data) => {
+      if (data.message.charAt(0) !== `${this.user.id}`) {
+        this.message = data.message
+        this.snackbar = true
+      }
+    })
+    this.$bus.on('new-drawer', (data) => {
+      this.message = `${data} is now drawing`
+      this.snackbar = true
     })
   }
 }

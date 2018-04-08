@@ -138,6 +138,7 @@
 
 <script>
 import { COLORS, THICKNESSES, TYPES } from '../constants/constants'
+import { DELETE_ROOM_MUTATION } from '../constants/graphql'
 
 export default {
   name: 'Actions',
@@ -151,7 +152,8 @@ export default {
     selectedType: 'brush',
     colors: COLORS,
     thicknesses: THICKNESSES,
-    types: TYPES
+    types: TYPES,
+    user: JSON.parse(localStorage.getItem('user'))
   }),
   props: [
     'room'
@@ -161,12 +163,25 @@ export default {
       this.admin = true
     })
     this.$bus.on('change-permissions', (data) => {
+      console.log('change Permissions' + data)
       this.isAllowed = data
     })
   },
   methods: {
     exitToLobby () {
-      this.$router.push({path: '/app'})
+      this.$bus.emit('user-disconnected')
+      this.$apollo.mutate({
+        mutation: DELETE_ROOM_MUTATION,
+        variables: {
+          idOwner: this.user.id,
+          idRoom: this.room.idRoom
+        }
+      }).then((response) => {
+        console.log('Success')
+        this.$router.push('/app')
+      }).catch((error) => {
+        console.log(error)
+      })
     },
     askForMic () {
       console.log('Asked for mic')

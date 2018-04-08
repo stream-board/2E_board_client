@@ -13,7 +13,7 @@
             size="64"
             class="grey lighten-4"
           >
-            <img src="https://scontent.fbog2-2.fna.fbcdn.net/v/t1.0-9/29257602_2363274117023494_462666611703152640_n.jpg?_nc_cat=0&oh=0eddf2864747e842e64d2de3a9f760df&oe=5B361F5F" alt="avatar">
+            <img :src="user.image" alt="avatar">
           </v-avatar>
         </v-flex>
         <v-flex xs12 class="mt-3">
@@ -71,9 +71,11 @@
               <v-card-title class="headline">Join a Room</v-card-title>
               <v-card-text>
                 <v-text-field
+                  autofocus
                   label="Room Id"
                   mask="#######################"
                   v-model="joinId"
+                  @keyup.enter="joinRoom(joinId)"
                 ></v-text-field>
               </v-card-text>
               <v-card-actions>
@@ -93,10 +95,10 @@
                 <v-container grid-list-md>
                   <v-layout wrap>
                     <v-flex xs12>
-                      <v-text-field label="Name" required v-model="newRoom.name"></v-text-field>
+                      <v-text-field autofocus label="Name" required v-model="newRoom.name" @keyup.enter="createRoom()"></v-text-field>
                     </v-flex>
                     <v-flex xs12>
-                      <v-text-field label="Description" multi-line v-model="newRoom.description"></v-text-field>
+                      <v-text-field label="Description" multi-line v-model="newRoom.description" @keyup.enter="createRoom()"></v-text-field>
                     </v-flex>
                     <v-flex xs12>
                       <v-select
@@ -134,7 +136,7 @@
                 <v-icon>{{room.category.icon}}</v-icon>
               </v-list-tile-action>
               <v-list-tile-avatar>
-                <img src="https://scontent.fbog2-2.fna.fbcdn.net/v/t1.0-9/29257602_2363274117023494_462666611703152640_n.jpg?_nc_cat=0&oh=0eddf2864747e842e64d2de3a9f760df&oe=5B361F5F">
+                <img :src="room.owner.image">
               </v-list-tile-avatar>
               <v-list-tile-content>
                 <v-list-tile-title>{{room.nameRoom}}</v-list-tile-title>
@@ -159,21 +161,29 @@
 
 <script>
 import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION } from '../constants/graphql'
+import { CATEGORIES } from '../constants/constants'
 
 export default {
   name: 'Lobby',
-  created () {
+  mounted () {
     this.$apollo.query({
       query: ALL_ROOMS_QUERY
     }).then((result) => {
       let rooms = []
       result.data.allRooms.forEach((item) => {
+        console.log(item)
+        let newCategory = this.categories.filter((category) => {
+          return category.value === item.categoryRoom
+        })[0]
+        if (!newCategory) {
+          newCategory = this.categories[0]
+        }
         let room = {
           idRoom: item.idRoom,
           owner: item.owner,
           nameRoom: item.nameRoom,
           descriptionRoom: item.descriptionRoom,
-          category: this.categories[Math.floor(Math.random() * this.categories.length)]
+          category: newCategory
         }
         rooms.push(room)
         this.roomsList = rooms
@@ -193,58 +203,7 @@ export default {
       selectedCategory: 'all',
       newRoom: {},
       joinId: null,
-      categories: [
-        {
-          name: 'Politics',
-          value: 'politics',
-          icon: 'account_balance'
-        },
-        {
-          name: 'Programming',
-          value: 'programming',
-          icon: 'code'
-        },
-        {
-          name: 'Music',
-          value: 'music',
-          icon: 'music_note'
-        },
-        {
-          name: 'Movies',
-          value: 'movies',
-          icon: 'movie'
-        },
-        {
-          name: 'Books',
-          value: 'books',
-          icon: 'import_contacts'
-        },
-        {
-          name: 'Relaxing',
-          value: 'relaxing',
-          icon: 'weekend'
-        },
-        {
-          name: 'Gaming',
-          value: 'gaming',
-          icon: 'videogame_asset'
-        },
-        {
-          name: 'Math',
-          value: 'math',
-          icon: 'functions'
-        },
-        {
-          name: 'Languages',
-          value: 'languages',
-          icon: 'public'
-        },
-        {
-          name: 'Science',
-          value: 'science',
-          icon: 'lightbulb_outline'
-        }
-      ]
+      categories: CATEGORIES
     }
   },
   methods: {
@@ -271,7 +230,8 @@ export default {
         variables: {
           idOwner: user.id,
           nameRoom: this.newRoom.name,
-          descriptionRoom: this.newRoom.description
+          descriptionRoom: this.newRoom.description,
+          categoryRoom: this.newRoom.category
         }
       }).then((response) => {
         let id = response.data.createRoom.idRoom
@@ -294,6 +254,7 @@ export default {
       this.selectedCategory = category
     },
     checkCategory (category) {
+      console.log(category)
       if (this.selectedCategory === 'all') {
         return true
       } else if (this.selectedCategory === category) {

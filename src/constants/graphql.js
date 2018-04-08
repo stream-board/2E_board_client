@@ -26,6 +26,7 @@ export const ALL_ROOMS_QUERY = gql`
       idRoom,
       nameRoom,
       descriptionRoom,
+      categoryRoom,
       owner{
         name,
         nickname,
@@ -41,9 +42,30 @@ export const ROOM_BY_ID_QUERY = gql`
       nameRoom,
       descriptionRoom,
       idRoom,
+      categoryRoom,
       Participants{
+        id,
         name,
         nickname,
+        image
+      }
+    }
+  }
+`
+
+export const MESSAGES_BY_ROOM_ID_QUERY = gql`
+  query MessagesByRoomIdQuery($id: Int!){
+    chatMsgByRoomId(id: $id){
+      user_id,
+      message
+    }
+  }
+`
+
+export const USER_IMAGE_BY_ID_QUERY = gql`
+  query UserImageByIdQuery($id: Int!){
+    userById(id: $id){
+      data{
         image
       }
     }
@@ -72,12 +94,13 @@ export const CREATE_SESSION_MUTATION = gql`
 `
 
 export const CREATE_ROOM_MUTATION = gql`
-mutation CreateRoomMutation($idOwner: Int!, $nameRoom: String!, $descriptionRoom: String!) {
+mutation CreateRoomMutation($idOwner: Int!, $nameRoom: String!, $descriptionRoom: String!, $categoryRoom: String!) {
   createRoom(
     room:{
       idOwner: $idOwner,
       nameRoom: $nameRoom,
-      descriptionRoom: $descriptionRoom
+      descriptionRoom: $descriptionRoom,
+      categoryRoom: $categoryRoom
     }
   ) {
     idRoom

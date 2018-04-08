@@ -29,7 +29,7 @@ const store = new Vuex.Store({
 Vue.use(VueBus)
 
 const httpLink = new HttpLink({
-  uri: 'http://ec2-18-232-78-10.compute-1.amazonaws.com:5000/graphql'
+  uri: 'http://ec2-35-168-17-78.compute-1.amazonaws.com:5000/graphql'
 })
 
 const apolloClient = new ApolloClient({

@@ -27,7 +27,8 @@ export default new Router({
         {
           path: '',
           name: 'Lobby',
-          component: Lobby
+          component: Lobby,
+          canReuse: false
         }
       ]
     },

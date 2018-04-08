@@ -28,6 +28,12 @@ export default {
     this.$bus.on('clear-board', () => {
       this.clearBoard()
     })
+    this.$bus.on('user-disconnected', () => {
+      this.socket.disconnect()
+    })
+    this.socket.on('newDrawer', (data) => {
+      this.$bus.emit('new-drawer', data)
+    })
     componentLoaded(this.$route.params.roomid, this)
     this.updateCursor()
   },
@@ -181,12 +187,12 @@ function componentLoaded (roomId, _this) {
     socket.on('hostLeft', function () {
       $swal({
         title: 'Call finished',
-        text: 'The host has left the room, you got disconnected of the room',
+        text: 'The host has left the room, you got disconnected from the room',
         type: 'info',
         confirmButtonColor: '#3085d6',
         confirmButtonText: 'Return to lobby'
       }).then((result) => {
-        $router.push({path: '/'})
+        this.$router.push('/app')
       })
     })
 

@@ -117,3 +117,69 @@ export const TYPES = [
     icon: 'brush'
   }
 ]
+
+export const CATEGORIES = [
+  {
+    name: 'Politics',
+    value: 'politics',
+    icon: 'account_balance'
+  },
+  {
+    name: 'Programming',
+    value: 'programming',
+    icon: 'code'
+  },
+  {
+    name: 'Music',
+    value: 'music',
+    icon: 'music_note'
+  },
+  {
+    name: 'Movies',
+    value: 'movies',
+    icon: 'movie'
+  },
+  {
+    name: 'Books',
+    value: 'books',
+    icon: 'import_contacts'
+  },
+  {
+    name: 'Relaxing',
+    value: 'relaxing',
+    icon: 'weekend'
+  },
+  {
+    name: 'Gaming',
+    value: 'gaming',
+    icon: 'videogame_asset'
+  },
+  {
+    name: 'Math',
+    value: 'math',
+    icon: 'functions'
+  },
+  {
+    name: 'Languages',
+    value: 'languages',
+    icon: 'public'
+  },
+  {
+    name: 'Science',
+    value: 'science',
+    icon: 'lightbulb_outline'
+  }
+]
+
+export const CATEGORY_ICON = {
+  'politics': 'account_balance',
+  'programming': 'code',
+  'music': 'music_note',
+  'movies': 'movie',
+  'books': 'import_contacts',
+  'relaxing': 'weekend ',
+  'gaming': 'videogame_asset',
+  'math': 'functions',
+  'languages': 'public',
+  'science': 'lightbulb_outline'
+}
