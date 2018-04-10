@@ -117,7 +117,7 @@
       </v-flex>
       <v-flex xs1>
         <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="clearBoard()">
+          <v-btn small :disabled="!isAllowed" class="elevation-10" slot="activator" outline fab color="primary" @click="clearBoard()">
             <v-icon>delete</v-icon>
           </v-btn>
           <span>Clear Board</span>
