@@ -24,6 +24,7 @@ export default {
     })
     this.$bus.on('change-type', (data) => {
       this.selectedType = data
+      this.updateCursor()
     })
     this.$bus.on('clear-board', () => {
       this.clearBoard()
@@ -33,6 +34,9 @@ export default {
     })
     this.socket.on('newDrawer', (data) => {
       this.$bus.emit('new-drawer', data)
+    })
+    this.socket.on('userDisconnected', (data) => {
+      this.$bus.emit('user-disconnected', data)
     })
     componentLoaded(this.$route.params.roomid, this)
     this.updateCursor()
@@ -45,11 +49,29 @@ export default {
       this.socket.emit('resetBoard')
     },
     updateCursor () {
-      $('#board').awesomeCursor('circle', {
-        color: this.selectedColor,
-        size: this.selectedThickness,
-        hotspot: 'center'
-      })
+      switch (this.selectedType) {
+        case 'point':
+          $('#board').awesomeCursor('circle', {
+            color: this.selectedColor,
+            size: this.selectedThickness,
+            hotspot: 'center'
+          })
+          break
+        case 'line':
+          $('#board').awesomeCursor('circle', {
+            color: this.selectedColor,
+            size: this.selectedThickness,
+            hotspot: 'center'
+          })
+          break
+        case 'eraser':
+          $('#board').awesomeCursor('circle-thin', {
+            color: '#000000',
+            size: this.selectedThickness,
+            hotspot: 'center'
+          })
+          break
+      }
     },
     setAdmin () {
       this.$bus.emit('set-admin')
@@ -192,7 +214,7 @@ function componentLoaded (roomId, _this) {
         confirmButtonColor: '#3085d6',
         confirmButtonText: 'Return to lobby'
       }).then((result) => {
-        this.$router.push('/app')
+        _this.$router.push('/app')
       })
     })
 

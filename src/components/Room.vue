@@ -50,10 +50,14 @@ export default {
       console.log(error)
     })
     this.$bus.on('new-participant', (data) => {
-      if (data.message.charAt(0) !== `${this.user.id}`) {
+      if (data.message.split(' ')[0] !== `${this.user.nickname}`) {
         this.message = data.message
         this.snackbar = true
       }
+    })
+    this.$bus.on('user-disconnected', (data) => {
+      this.message = `User ${data} disconnected`
+      this.snackbar = true
     })
     this.$bus.on('new-drawer', (data) => {
       this.message = `${data} is now drawing`
