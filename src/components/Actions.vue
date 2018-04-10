@@ -173,7 +173,7 @@ export default {
       let mutation = EXIT_ROOM_MUTATION
       if (this.admin) mutation = DELETE_ROOM_MUTATION
       this.$apollo.mutate({
-        mutation: EXIT_ROOM_MUTATION,
+        mutation: mutation,
         variables: {
           idOwner: this.user.id,
           idRoom: this.room.idRoom

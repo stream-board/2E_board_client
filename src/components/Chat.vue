@@ -200,10 +200,10 @@ export default {
   #messages{
     background-color: #FFF;
     position: absolute;
-    height: 77%;
+    height: 67%;
     width: 90%;
     left: 5%;
-    bottom: 17%;
+    bottom: 27%;
     border-radius: 20px;
     overflow-y: scroll;
   }

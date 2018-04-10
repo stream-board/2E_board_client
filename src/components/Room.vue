@@ -55,8 +55,10 @@ export default {
       }
     })
     this.$bus.on('user-disconnected', (data) => {
-      this.message = `User ${data} disconnected`
-      this.snackbar = true
+      if (data) {
+        this.message = `User ${data} disconnected`
+        this.snackbar = true
+      }
     })
     this.$bus.on('new-drawer', (data) => {
       this.message = `${data} is now drawing`
@@ -90,14 +92,14 @@ export default {
       position: absolute;
       top: 0;
       right: 0;
-      height: 60%;
+      height: 50%;
       width: 25%;
     }
     #chat-container{
       position: absolute;
       bottom: 0;
       right: 0;
-      height: 40%;
+      height: 50%;
       width: 25%;
     }
     #actions-container{

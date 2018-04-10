@@ -1,66 +1,60 @@
-var signaling_socket; /* our socket.io connection to our webserver */
-var local_media_stream; /* our own microphone / webcam */
-var peers; /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-var peer_media_elements; /* keep track of our <video>/<audio> tags, indexed by peer_id */
-var peer_html_videos;
-var roomMaster;
-var master;
-var channel;
-var speakers;
-var am_i_speaker;
+let signalingSocket /* our socket.io connection to our webserver */
+let localMediaStream /* our own microphone / webcam */
+let peers /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
+let peerMediaElements /* keep track of our <video>/<audio> tags, indexed by peer_id */
+let roomMaster
+let master
+let channel
+let speakers
+let amISpeaker
 export default {
   name: 'Streaming',
-  mounted: function() {
-    channel = this.$route.params.roomid;
-    this.$bus.on('activate-cam', this.toggleVideo);
-    this.$bus.on('block-cam', this.toggleVideo);
-    this.$bus.on('ask-for-mic', this.askForWord);
-    this.$bus.on('mute-mic', this.muteAll);
-    componentLoaded(this);
-    
+  mounted: function () {
+    channel = this.$route.params.roomid
+    this.$bus.on('activate-cam', this.toggleVideo)
+    this.$bus.on('block-cam', this.toggleVideo)
+    this.$bus.on('ask-for-mic', this.askForWord)
+    this.$bus.on('mute-mic', this.muteAll)
+    componentLoaded(this)
   },
-  methods:{
+  methods: {
     amIMaster () {
-      //document.getElementById('demo').innerHTML = roomMaster;
+      // document.getElementById('demo').innerHTML = roomMaster;
     },
     askForWord () {
-      console.log( "emiting askForWord" )
-      signaling_socket.emit('relayAskForWord', {
+      signalingSocket.emit('relayAskForWord', {
         'channel': channel
       })
     },
     muteAll () {
-      console.log('Muting clients')
-      signaling_socket.emit('relayMuteAll', {
+      signalingSocket.emit('relayMuteAll', {
         'channel': channel
       })
-    }, 
+    },
     toggleAudio () {
-      console.log('Muting myself')
-      if(local_media_stream.getAudioTracks()[0].enabled){
-        $('#local_video').css('border', '9px solid red');
-        signaling_socket.emit('relayMuteMyself', {'channel': channel});
-      }else{
+      if (localMediaStream.getAudioTracks()[0].enabled) {
+        $('#local_video').css('border', '1px solid #f44336')
+        signalingSocket.emit('relayMuteMyself', {'channel': channel})
+      } else {
         $('#local_video').css('border', '')
-        signaling_socket.emit('relayUnMuteMyself', {'channel': channel});
+        signalingSocket.emit('relayUnMuteMyself', {'channel': channel})
       }
-      local_media_stream.getAudioTracks()[0].enabled =
-        !(local_media_stream.getAudioTracks()[0].enabled);
-
+      localMediaStream.getAudioTracks()[0].enabled =
+        !(localMediaStream.getAudioTracks()[0].enabled)
     },
     toggleVideo () {
       console.log('Disabling myself video')
-      local_media_stream.getVideoTracks()[0].enabled =
-        !(local_media_stream.getVideoTracks()[0].enabled);
+      localMediaStream.getVideoTracks()[0].enabled =
+        !(localMediaStream.getVideoTracks()[0].enabled)
     },
     setSpeakers (speakers, master) {
       console.log('rendering speakers')
       if (!roomMaster) {
-        $('video').css('border', '9px solid red')
+        $('video').css('border', '1px solid #f44336')
       } else {
-        $('video').not('#local_video').css('border', '9px solid red')
+        $('video').not('#local_video').css('border', '1px solid #f44336')
       }
-      for (var speaker in speakers) {
+      for (let speaker in speakers) {
         $('#' + speaker).css('border', '')
       }
       $('#' + master).css('border', '')
@@ -68,256 +62,234 @@ export default {
   }
 }
 function componentLoaded (_this) {
-  var $swal = _this.$swal
-  var videos = [];
+  let $swal = _this.$swal
   /** CONFIG **/
-  var SIGNALING_SERVER = 'ws://54.224.164.98:8444';
-  //var SIGNALING_SERVER = 'ws://localhost:8444';
-  //var SIGNALING_SERVER = 'ws://192.168.99.101:8444';
-  var USE_AUDIO = true;
-  var USE_VIDEO = true;
-  var DEFAULT_CHANNEL = 'some-global-channel-name';
-  var MUTE_AUDIO_BY_DEFAULT = true;
+  let SIGNALING_SERVER = 'ws://54.224.164.98:8444'
+  // let SIGNALING_SERVER = 'ws://localhost:8444';
+  // let SIGNALING_SERVER = 'ws://192.168.99.101:8444';
+  let USE_AUDIO = true
+  let USE_VIDEO = true
+  let MUTE_AUDIO_BY_DEFAULT = true
   /** You should probably use a different stun server doing commercial stuff **/
   /** Also see: https://gist.github.com/zziuni/3741933 **/
-  var ICE_SERVERS = [{
+  let ICE_SERVERS = [{
     url: 'stun:stun.l.google.com:19302'
-  }];
+  }]
 
-  function initVars () {
-    signaling_socket = null; /* our socket.io connection to our webserver */
-    local_media_stream = null; /* our own microphone / webcam */
-    peers = {}; /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-    peer_media_elements = {}; /* keep track of our <video>/<audio> tags, indexed by peer_id */
-    peer_html_videos = {};
-    roomMaster = false;
-    master = null;
-    speakers = {};
-    am_i_speaker = false;
+  function initlets () {
+    signalingSocket = null /* our socket.io connection to our webserver */
+    localMediaStream = null /* our own microphone / webcam */
+    peers = {} /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
+    peerMediaElements = {} /* keep track of our <video>/<audio> tags, indexed by peer_id */
+    roomMaster = false
+    master = null
+    speakers = {}
+    amISpeaker = false
   }
 
-  var attachMediaStream = function(element, stream) {
-    console.log('DEPRECATED, attachMediaStream will soon be removed.');
-    element.srcObject = stream;
-  };
+  let attachMediaStream = function (element, stream) {
+    element.srcObject = stream
+  }
 
-  console.log('Connecting to signaling server');
-  initVars();
-  signaling_socket = io(SIGNALING_SERVER);
-  //signaling_socket = io();
-  signaling_socket.on('connect', function() {
-    console.log('Connected to signaling server');
-    //checkRoomMaster( channel );
-    //channel = prompt('Please enter a name for your room: ', DEFAULT_CHANNEL);
-    //channel = this.$route.params.roomid
-    console.log('Connected to room' + channel);
-    signaling_socket.emit('relayRoomMaster', channel, function(config) {
-      console.log('roomMaster: ', config);
-      roomMaster = config.isRoomMaster;
-      master = config.roomMaster;
-    });
-    setup_local_media(function() {
+  console.log('Connecting to signaling server')
+  initlets()
+  // eslint-disable-next-line
+  signalingSocket = io (SIGNALING_SERVER)
+  signalingSocket.on('connect', function () {
+    console.log('Connected to signaling server')
+    console.log('Connected to room' + channel)
+    signalingSocket.emit('relayRoomMaster', channel, function (config) {
+      console.log('roomMaster: ', config)
+      roomMaster = config.isRoomMaster
+      master = config.roomMaster
+    })
+    setupLocalMedia(function () {
       /* once the user has given us access to their
        * microphone/camcorder, join the channel and start peering up */
-      join_chat_channel(channel, {
+      joinChatChannel(channel, {
         'whatever-you-want-here': 'stuff'
-      });
-    });
-  });
-  signaling_socket.on('disconnect', function() {
-    console.log('Disconnected from signaling server');
+      })
+    })
+  })
+  signalingSocket.on('disconnect', function () {
+    console.log('Disconnected from signaling server')
     /* Tear down all of our peer connections and remove all the
      * media divs when we disconnect */
-    for (peer_id in peer_media_elements) {
-      peer_media_elements[peer_id].remove();
+    for (let peerId in peerMediaElements) {
+      peerMediaElements[peerId].remove()
     }
-    for (peer_id in peers) {
-      peers[peer_id].close();
+    for (let peerId in peers) {
+      peers[peerId].close()
     }
 
-    peers = {};
-    peer_media_elements = {};
-    peer_html_videos = {};
-    initVars();
-  });
+    peers = {}
+    peerMediaElements = {}
+    initlets()
+  })
 
-  function join_chat_channel (channel, userdata) {
-    signaling_socket.emit('join', {
+  function joinChatChannel (channel, userdata) {
+    signalingSocket.emit('join', {
       'channel': channel,
       'userdata': userdata
-    });
+    })
   }
 
-  function part_chat_channel (channel) {
-    signaling_socket.emit('part', channel);
-  }
-
-  function checkRoomMaster (channel) {
-    console.log('masterNow: ' + roomMaster);
-    signaling_socket.emit('relayRoomMaster', channel);
-  }
-
-  /** 
+  /*
    * When we join a group, our signaling server will send out 'addPeer' events to each pair
    * of users in the group (creating a fully-connected graph of users, ie if there are 6 people
-   * in the channel you will connect directly to the other 5, so there will be a total of 15 
-   * connections in the network). 
+   * in the channel you will connect directly to the other 5, so there will be a total of 15
+   * connections in the network).
    */
-  signaling_socket.on('addPeer', function(config) {
-    console.log('Signaling server said to add peer:', config);
-    var peer_id = config.peer_id;
-    console.log('allll');
-    console.log(config);
-    speakers = config.speakers;
-    console.log('speakeeeers: ');
-    console.log(config.is_speaker);
-    am_i_speaker = config.is_speaker;
-    if (peer_id in peers) {
+  signalingSocket.on('addPeer', function (config) {
+    console.log('Signaling server said to add peer:', config)
+    let peerId = config.peer_id
+    console.log(config)
+    speakers = config.speakers
+    console.log(config.is_speaker)
+    amISpeaker = config.is_speaker
+    if (peerId in peers) {
       /* This could happen if the user joins multiple channels where the other peer is also in. */
-      console.log('Already connected to peer ', peer_id);
-      return;
+      console.log('Already connected to peer ', peerId)
+      return
     }
-    var peer_connection = new RTCPeerConnection({
-        'iceServers': ICE_SERVERS
-      }, {
-        'optional': [{
-          'DtlsSrtpKeyAgreement': true
-        }]
-      }
+    let peerConnection = new RTCPeerConnection({
+      'iceServers': ICE_SERVERS
+    }, {
+      'optional': [{
+        'DtlsSrtpKeyAgreement': true
+      }]
+    }
       /* this will no longer be needed by chrome
-       * eventually (supposedly), but is necessary 
+       * eventually (supposedly), but is necessary
        * for now to get firefox to talk to chrome */
-    );
-    peers[peer_id] = peer_connection;
+    )
+    peers[peerId] = peerConnection
 
-    peer_connection.onicecandidate = function(event) {
+    peerConnection.onicecandidate = function (event) {
       if (event.candidate) {
-        signaling_socket.emit('relayICECandidate', {
-          'peer_id': peer_id,
+        signalingSocket.emit('relayICECandidate', {
+          'peer_id': peerId,
           'ice_candidate': {
             'sdpMLineIndex': event.candidate.sdpMLineIndex,
             'candidate': event.candidate.candidate
           }
-        });
+        })
       }
-    };
-    peer_connection.onaddstream = function(event) {
-      console.log('onAddStream', event);
-      var remote_media = USE_VIDEO ? $('<video>') : $('<audio>');
-      remote_media.attr('autoplay', 'autoplay');
+    }
+    peerConnection.onaddstream = function (event) {
+      console.log('onAddStream', event)
+      let remoteMedia = USE_VIDEO ? $('<video>') : $('<audio>')
+      remoteMedia.attr('autoplay', 'autoplay')
       if (MUTE_AUDIO_BY_DEFAULT) {
-        remote_media.attr('muted', 'true');
+        remoteMedia.attr('muted', 'true')
       }
-      remote_media.attr('controls', '');
-      remote_media.attr('id', peer_id);
-      peer_media_elements[peer_id] = remote_media;
-      $('#client-videos').append(remote_media);
-      $( '#' + peer_id ).height( "100%" );
-      $( '#' + peer_id ).width( "40%" );
-      attachMediaStream(remote_media[0], event.stream);
-      console.log('speakers in css: ' + am_i_speaker);
-      console.log('master in css: ' + roomMaster);
-      if (!(peer_id in speakers) && peer_id != master) {
-        $('#' + peer_id).css('border', '9px solid red');
-        //remote_media.getAudioTracks()[0].enabled = false;
+      remoteMedia.attr('controls', '')
+      remoteMedia.attr('id', peerId)
+      peerMediaElements[peerId] = remoteMedia
+      $('#client-videos').append(remoteMedia)
+      $('#' + peerId).height('100%')
+      $('#' + peerId).width('40%')
+      attachMediaStream(remoteMedia[0], event.stream)
+      console.log('speakers in css: ' + amISpeaker)
+      console.log('master in css: ' + roomMaster)
+      if (!(peerId in speakers) && peerId !== master) {
+        $('#' + peerId).css('border', '1px solid #f44336')
+        // remote_media.getAudioTracks()[0].enabled = false;
       }
       if (!roomMaster) {
-        $('#local_video').css('border', '9px solid red');
+        $('#local_video').css('border', '1px solid #f44336')
       }
-    };
+    }
 
     /* Add our local stream */
-    peer_connection.addStream(local_media_stream);
+    peerConnection.addStream(localMediaStream)
 
     /* Only one side of the peer connection should create the
-     * offer, the signaling server picks one to be the offerer. 
+     * offer, the signaling server picks one to be the offerer.
      * The other user will get a 'sessionDescription' event and will
      * create an offer, then send back an answer 'sessionDescription' to us
      */
     if (config.should_create_offer) {
-      console.log('Creating RTC offer to ', peer_id);
-      peer_connection.createOffer(
-        function(local_description) {
-          console.log('Local offer description is: ', local_description);
-          peer_connection.setLocalDescription(local_description,
-            function() {
-              signaling_socket.emit('relaySessionDescription', {
-                'peer_id': peer_id,
-                'session_description': local_description
-              });
-              console.log('Offer setLocalDescription succeeded');
+      console.log('Creating RTC offer to ', peerId)
+      peerConnection.createOffer(
+        function (localDescription) {
+          console.log('Local offer description is: ', localDescription)
+          peerConnection.setLocalDescription(localDescription,
+            function () {
+              signalingSocket.emit('relaySessionDescription', {
+                'peer_id': peerId,
+                'session_description': localDescription
+              })
+              console.log('Offer setLocalDescription succeeded')
             },
-            function() {
-              Alert('Offer setLocalDescription failed!');
+            function () {
+              alert('Offer setLocalDescription failed!')
             }
-          );
+          )
         },
-        function(error) {
-          console.log('Error sending offer: ', error);
-        });
+        function (error) {
+          console.log('Error sending offer: ', error)
+        })
     }
-  });
+  })
 
-
-  /** 
+  /**
    * Peers exchange session descriptions which contains information
    * about their audio / video settings and that sort of stuff. First
    * the 'offerer' sends a description to the 'answerer' (with type
-   * 'offer'), then the answerer sends one back (with type 'answer').  
+   * 'offer'), then the answerer sends one back (with type 'answer').
    */
-  signaling_socket.on('sessionDescription', function(config) {
-    console.log('Remote description received: ', config);
-    var peer_id = config.peer_id;
-    var peer = peers[peer_id];
-    var remote_description = config.session_description;
-    console.log(config.session_description);
+  signalingSocket.on('sessionDescription', function (config) {
+    console.log('Remote description received: ', config)
+    let peerId = config.peerId
+    let peer = peers[peerId]
+    let remoteDescription = config.sessionDescription
+    console.log(config.session_description)
 
-    var desc = new RTCSessionDescription(remote_description);
-    var stuff = peer.setRemoteDescription(desc,
-      function() {
-        console.log('setRemoteDescription succeeded');
-        if (remote_description.type == 'offer') {
-          console.log('Creating answer');
+    let desc = new RTCSessionDescription(remoteDescription)
+    peer.setRemoteDescription(desc,
+      function () {
+        console.log('setRemoteDescription succeeded')
+        if (remoteDescription.type === 'offer') {
+          console.log('Creating answer')
           peer.createAnswer(
-            function(local_description) {
-              console.log('Answer description is: ', local_description);
-              peer.setLocalDescription(local_description,
-                function() {
-                  signaling_socket.emit('relaySessionDescription', {
-                    'peer_id': peer_id,
-                    'session_description': local_description
-                  });
-                  console.log('Answer setLocalDescription succeeded');
+            function (localDescription) {
+              console.log('Answer description is: ', localDescription)
+              peer.setLocalDescription(localDescription,
+                function () {
+                  signalingSocket.emit('relaySessionDescription', {
+                    'peer_id': peerId,
+                    'session_description': localDescription
+                  })
+                  console.log('Answer setLocalDescription succeeded')
                 },
-                function() {
-                  Alert('Answer setLocalDescription failed!');
+                function () {
+                  alert('Answer setLocalDescription failed!')
                 }
-              );
+              )
             },
-            function(error) {
-              console.log('Error creating answer: ', error);
-              console.log(peer);
-            });
+            function (error) {
+              console.log('Error creating answer: ', error)
+              console.log(peer)
+            })
         }
       },
-      function(error) {
-        console.log('setRemoteDescription error: ', error);
+      function (error) {
+        console.log('setRemoteDescription error: ', error)
       }
-    );
-    console.log('Description Object: ', desc);
-
-  });
+    )
+    console.log('Description Object: ', desc)
+  })
 
   /**
-   * The offerer will send a number of ICE Candidate blobs to the answerer so they 
+   * The offerer will send a number of ICE Candidate blobs to the answerer so they
    * can begin trying to find the best path to one another on the net.
    */
-  signaling_socket.on('iceCandidate', function(config) {
-    var peer = peers[config.peer_id];
-    var ice_candidate = config.ice_candidate;
-    peer.addIceCandidate(new RTCIceCandidate(ice_candidate));
-  });
-
+  signalingSocket.on('iceCandidate', function (config) {
+    let peer = peers[config.peer_id]
+    let iceCandidate = config.ice_candidate
+    peer.addIceCandidate(new RTCIceCandidate(iceCandidate))
+  })
 
   /**
    * When a user leaves a channel (or is disconnected from the
@@ -329,28 +301,28 @@ function componentLoaded (_this) {
    * signaling_socket.on('disconnect') code will kick in and tear down
    * all the peer sessions.
    */
-  signaling_socket.on('removePeer', function(config) {
-    console.log('Signaling server said to remove peer:', config);
-    var peer_id = config.peer_id;
-    if (peer_id in peer_media_elements) {
-      peer_media_elements[peer_id].remove();
+  signalingSocket.on('removePeer', function (config) {
+    console.log('Signaling server said to remove peer:', config)
+    let peerId = config.peer_id
+    if (peerId in peerMediaElements) {
+      peerMediaElements[peerId].remove()
     }
-    if (peer_id in peers) {
-      peers[peer_id].close();
+    if (peerId in peers) {
+      peers[peerId].close()
     }
 
-    delete peers[peer_id];
-    delete peer_media_elements[config.peer_id];
-  });
+    delete peers[peerId]
+    delete peerMediaElements[config.peer_id]
+  })
 
-  signaling_socket.on('roomMaster', function(config) {
-    console.log('roomMaster: ', config);
-    roomMaster = config.isRoomMaster;
-    master = config.roomMaster;
-  });
+  signalingSocket.on('roomMaster', function (config) {
+    console.log('roomMaster: ', config)
+    roomMaster = config.isRoomMaster
+    master = config.roomMaster
+  })
 
-  signaling_socket.on('askForWord', function (data) {
-    console.log("someone asking word");
+  signalingSocket.on('askForWord', function (data) {
+    console.log('someone asking word')
     $swal({
       title: 'Talk petition',
       text: `User ${data.asker} wants to use the board`,
@@ -367,155 +339,122 @@ function componentLoaded (_this) {
           'User has the permission',
           'success'
         )
-        signaling_socket.emit('relayGiveWord', {
+        signalingSocket.emit('relayGiveWord', {
           'channel': channel,
           'asker': data.asker
-        });
+        })
       } else {
         $swal(
           'Disapproved',
           'You disapproved the user',
           'error'
         )
-        //socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
+        // socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
       }
     })
   })
 
-  signaling_socket.on('muteAll', function(config) {
-    var my_peer_id = config.my_peer_id;
-    var master_id = config.master;
-    speakers = {};
-    setSpeakers(speakers, master_id, roomMaster);
+  signalingSocket.on('muteAll', function (config) {
+    let masterId = config.master
+    speakers = {}
+    setSpeakers(speakers, masterId, roomMaster)
     if (!roomMaster) {
-      console.log('Muting localstream audio');
-      local_media_stream.getAudioTracks()[0].enabled = false;
-      //document.getElementById('muted').innerHTML = 'Muted: True';
+      console.log('Muting localstream audio')
+      localMediaStream.getAudioTracks()[0].enabled = false
+      // document.getElementById('muted').innerHTML = 'Muted: True';
     }
-  });
+  })
 
-  signaling_socket.on('giveWord', function(config) {
-    am_i_speaker = config.am_i_speaker;
-    speakers = config.speakers;
+  signalingSocket.on('giveWord', function (config) {
+    amISpeaker = config.amISpeaker
+    speakers = config.speakers
 
-    for (var speaker in speakers) {
-      $('#' + speaker).css('border', '');
+    for (let speaker in speakers) {
+      $('#' + speaker).css('border', '')
     }
 
-    if (am_i_speaker) {
-      local_media_stream.getAudioTracks()[0].enabled = true;
-      $('#local_video').css('border', '');
-      //document.getElementById('muted').innerHTML = 'Muted: False';
+    if (amISpeaker) {
+      localMediaStream.getAudioTracks()[0].enabled = true
+      $('#local_video').css('border', '')
+      // document.getElementById('muted').innerHTML = 'Muted: False';
     }
-  });
+  })
 
-  signaling_socket.on('roomDestroyed', function(config) {
-    document.body.innerHTML = '';
-    var info = document.createTextNode('Tu sala ha cerrado');
-    $('#all-videos').append(info);
-    initVars();
-  });
+  signalingSocket.on('roomDestroyed', function (config) {
+    document.body.innerHTML = ''
+    let info = document.createTextNode('Tu sala ha cerrado')
+    $('#all-videos').append(info)
+    initlets()
+  })
 
-  signaling_socket.on('mute', function(config) {
-    var toMute = config.peer_id;
-    console.log("unmuting" + toMute);
-    $('#' + toMute).css('border', '9px solid red');
-  });
-  signaling_socket.on('unMute', function(config) {
-    var toUnMute = config.peer_id;
-    console.log("unmuting" + toUnMute);
-    $('#' + toUnMute).css('border', '');
-  });
+  signalingSocket.on('mute', function (config) {
+    let toMute = config.peer_id
+    console.log('unmuting' + toMute)
+    $('#' + toMute).css('border', '1px solid #f44336')
+  })
+  signalingSocket.on('unMute', function (config) {
+    let toUnMute = config.peerId
+    console.log('unmuting' + toUnMute)
+    $('#' + toUnMute).css('border', '')
+  })
   /***********************/
   /** Local media stuff **/
   /***********************/
-  function setup_local_media (callback, errorback) {
-    if (local_media_stream != null) { /* ie, if we've already been initialized */
-      if (callback) callback();
-      return;
+  function setupLocalMedia (callback, errorback) {
+    if (localMediaStream != null) { /* ie, if we've already been initialized */
+      if (callback) callback()
+      return
     }
-    /* Ask user for permission to use the computers microphone and/or camera, 
+    /* Ask user for permission to use the computers microphone and/or camera,
      * attach it to an <audio> or <video> tag if they give us access. */
-    console.log('Requesting access to local audio / video inputs');
-
+    console.log('Requesting access to local audio / video inputs')
 
     navigator.getUserMedia = (navigator.getUserMedia ||
       navigator.webkitGetUserMedia ||
       navigator.mozGetUserMedia ||
-      navigator.msGetUserMedia);
+      navigator.msGetUserMedia)
 
     navigator.getUserMedia({
-        'audio': USE_AUDIO,
-        'video': USE_VIDEO
-      },
-      function(stream) { /* user accepted access to a/v */
-        console.log('Access granted to audio/video');
-        local_media_stream = stream;
-        var local_media = USE_VIDEO ? $('<video>') : $('<audio>');
-        local_media.attr('autoplay', 'autoplay');
-        local_media.attr('muted', 'true'); /* always mute ourselves by default */
-        local_media.attr('controls', '');
-        local_media.attr('id', 'local_video');
-        //console.log( $('#all-videos').innerHTML );
-        $('#master-videos').append(local_media);
-        $( '#local_video' ).height( "40%" );
-        $( '#local_video' ).width( "100%" );
-        attachMediaStream(local_media[0], stream);
-        //document.getElementById('muted').innerHTML = 'Muted: False';
-        console.log('am_i_speaker: ' + am_i_speaker);
-        console.log('am_i_master: ' + roomMaster);
-        if (!am_i_speaker && !roomMaster) {
-          local_media_stream.getAudioTracks()[0].enabled = false;
-          //document.getElementById('muted').innerHTML = 'Muted: True';
-        }
-        if (callback) callback();
-      },
-      function() { /* user denied access to a/v */
-        console.log('Access denied for audio/video');
-        alert('You chose not to provide access to the camera/microphone, demo will not work.');
-        if (errorback) errorback();
-      });
-  }
-  
-
-  function amIMaster () {
-    //document.getElementById('demo').innerHTML = roomMaster;
-  }
-
-  function askForWord () {
-    signaling_socket.emit('relayAskForWord', {
-      'channel': channel
+      'audio': USE_AUDIO,
+      'video': USE_VIDEO
+    },
+    function (stream) { /* user accepted access to a/v */
+      console.log('Access granted to audio/video')
+      localMediaStream = stream
+      let localMedia = USE_VIDEO ? $('<video>') : $('<audio>')
+      localMedia.attr('autoplay', 'autoplay')
+      localMedia.attr('muted', 'true') /* always mute ourselves by default */
+      localMedia.attr('controls', '')
+      localMedia.attr('id', 'local_video')
+      // console.log( $('#all-videos').innerHTML );
+      $('#master-videos').append(localMedia)
+      $('#local_video').height('40%')
+      $('#local_video').width('100%')
+      attachMediaStream(localMedia[0], stream)
+      // document.getElementById('muted').innerHTML = 'Muted: False';
+      console.log('am_i_speaker: ' + amISpeaker)
+      console.log('am_i_master: ' + roomMaster)
+      if (!amISpeaker && !roomMaster) {
+        localMediaStream.getAudioTracks()[0].enabled = false
+        // document.getElementById('muted').innerHTML = 'Muted: True';
+      }
+      if (callback) callback()
+    },
+    function () { /* user denied access to a/v */
+      console.log('Access denied for audio/video')
+      alert('You chose not to provide access to the camera/microphone, demo will not work.')
+      if (errorback) errorback()
     })
   }
-
-  function muteAll () {
-    console.log('Muting clients')
-    signaling_socket.emit('relayMuteAll', {
-      'channel': channel
-    })
-  }  
-
-  function toggleAudio () {
-    console.log('Muting myself')
-    local_media_stream.getAudioTracks()[0].enabled =
-         !(local_media_stream.getAudioTracks()[0].enabled);
-  }
-
-  function toggleVideo () {
-    console.log('Disabling myself video')
-    local_media_stream.getVideoTracks()[0].enabled =
-         !(local_media_stream.getVideoTracks()[0].enabled);
-  }
-
 
   function setSpeakers (speakers, master) {
     console.log('rendering speakers')
     if (!roomMaster) {
-      $('video').css('border', '9px solid red')
+      $('video').css('border', '1px solid #f44336')
     } else {
-      $('video').not('#local_video').css('border', '9px solid red')
+      $('video').not('#local_video').css('border', '1px solid #f44336')
     }
-    for (var speaker in speakers) {
+    for (let speaker in speakers) {
       $('#' + speaker).css('border', '')
     }
     $('#' + master).css('border', '')

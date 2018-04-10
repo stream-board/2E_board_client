@@ -39,7 +39,7 @@ export default {
       this.$bus.emit('user-disconnected', data)
     })
     componentLoaded(this.$route.params.roomid, this)
-    this.updateCursor()
+    window.setTimeout(() => this.updateCursor(), 50)
   },
   methods: {
     askForTurn () {
@@ -87,7 +87,6 @@ export default {
 
 function componentLoaded (roomId, _this) {
   var $swal = _this.$swal
-  var $router = _this.$router
   var socket = _this.socket
 
   var isPenDown = false
@@ -145,26 +144,28 @@ function componentLoaded (roomId, _this) {
         text: `User ${data.nick} wants to use the board`,
         type: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#d33',
+        confirmButtonColor: '#26d3cd',
+        cancelButtonColor: '#f44336',
         confirmButtonText: 'Yes, approve',
         cancelButtonText: 'No, disapprove'
       }).then((result) => {
         if (result.value) {
-          $swal(
-            'Approved',
-            'User has the permission',
-            'success'
-          )
+          $swal({
+            title: 'Approved',
+            text: 'User has the permission',
+            type: 'success',
+            confirmButtonColor: '#26d3cd'
+          })
           _this.isAllowed = false
           _this.changePermissions(false)
           socket.emit('answerForBoard', {answer: true, socketId: data.socketId})
         } else {
-          $swal(
-            'Disapproved',
-            'You disapproved the user',
-            'error'
-          )
+          $swal({
+            title: 'Disapproved',
+            text: 'You disapproved the user',
+            type: 'error',
+            confirmButtonColor: '#26d3cd'
+          })
           socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
         }
       })
@@ -174,7 +175,8 @@ function componentLoaded (roomId, _this) {
         $swal({
           title: 'Permission granted',
           text: 'You can draw on the board',
-          type: 'success'
+          type: 'success',
+          confirmButtonColor: '#26d3cd'
         })
         _this.changePermissions(true)
         _this.isAllowed = true
@@ -182,7 +184,8 @@ function componentLoaded (roomId, _this) {
         $swal({
           title: 'Permission denied',
           text: 'You can\'t draw on the board',
-          type: 'error'
+          type: 'error',
+          confirmButtonColor: '#26d3cd'
         })
         _this.changePermissions(false)
         _this.isAllowed = false
@@ -191,27 +194,29 @@ function componentLoaded (roomId, _this) {
     socket.on('resetBoard', function (data) {
       _this.changePermissions(true)
       _this.isAllowed = true
-      $swal(
-        'You took the pen back',
-        'You can start drawing again',
-        'success'
-      )
+      $swal({
+        title: 'You took the pen back',
+        text: 'You can start drawing again',
+        type: 'success',
+        confirmButtonColor: '#26d3cd'
+      })
     })
     socket.on('lostPermission', function () {
       _this.changePermissions(false)
       _this.isAllowed = false
-      $swal(
-        'You lost permission',
-        'You can no longer draw',
-        'error'
-      )
+      $swal({
+        title: 'You lost permission',
+        text: 'You can no longer draw',
+        type: 'error',
+        confirmButtonColor: '#26d3cd'
+      })
     })
     socket.on('hostLeft', function () {
       $swal({
         title: 'Call finished',
         text: 'The host has left the room, you got disconnected from the room',
         type: 'info',
-        confirmButtonColor: '#3085d6',
+        confirmButtonColor: '#26d3cd',
         confirmButtonText: 'Return to lobby'
       }).then((result) => {
         _this.$router.push('/app')
@@ -236,8 +241,8 @@ function componentLoaded (roomId, _this) {
   }
 
   function clearBoard () {
-    context.fillStyle = '#FFFFFF';
-    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = '#FFFFFF'
+    context.fillRect(0, 0, canvas.width, canvas.height)
   }
 
   function drawMessageListener (data) {
