@@ -134,6 +134,19 @@ mutation DeleteRoomMutation($idOwner: Int!, $idRoom: Int!) {
 }
 `
 
+export const EXIT_ROOM_MUTATION = gql`
+mutation ExitRoomMutation($idOwner: Int!, $idRoom: Int!) {
+  exitRoom(
+    roomDelete:{
+      idOwner: $idOwner,
+      idRoom: $idRoom
+    }
+  ) {
+    idRoom
+  }
+}
+`
+
 export const DELETE_SESSION_MUTATION = gql`
 mutation DeleteSessionMutation($uid: String!, $token: String!, $client: String!) {
   deleteSession(headersSession: {

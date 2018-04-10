@@ -138,7 +138,7 @@
 
 <script>
 import { COLORS, THICKNESSES, TYPES } from '../constants/constants'
-import { DELETE_ROOM_MUTATION } from '../constants/graphql'
+import { DELETE_ROOM_MUTATION, EXIT_ROOM_MUTATION } from '../constants/graphql'
 
 export default {
   name: 'Actions',
@@ -170,8 +170,10 @@ export default {
   methods: {
     exitToLobby () {
       this.$bus.emit('user-disconnected')
+      let mutation = EXIT_ROOM_MUTATION
+      if (this.admin) mutation = DELETE_ROOM_MUTATION
       this.$apollo.mutate({
-        mutation: DELETE_ROOM_MUTATION,
+        mutation: EXIT_ROOM_MUTATION,
         variables: {
           idOwner: this.user.id,
           idRoom: this.room.idRoom

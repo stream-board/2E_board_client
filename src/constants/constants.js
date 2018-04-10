@@ -170,16 +170,3 @@ export const CATEGORIES = [
     icon: 'lightbulb_outline'
   }
 ]
-
-export const CATEGORY_ICON = {
-  'politics': 'account_balance',
-  'programming': 'code',
-  'music': 'music_note',
-  'movies': 'movie',
-  'books': 'import_contacts',
-  'relaxing': 'weekend ',
-  'gaming': 'videogame_asset',
-  'math': 'functions',
-  'languages': 'public',
-  'science': 'lightbulb_outline'
-}
