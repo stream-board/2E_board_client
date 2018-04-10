@@ -2,7 +2,7 @@
   <div class="room">
     <board id="board-container"></board>
     <actions :room="room" id="actions-container"></actions>
-    <cameras id="video-container"></cameras>
+    <cameras id="streaming-container"></cameras>
     <chat :room="room" :participants="room.Participants" id="chat-container"></chat>
     <v-snackbar
       color="info"
@@ -20,15 +20,14 @@ import { ROOM_BY_ID_QUERY } from '../constants/graphql'
 import Board from '@/components/Board.vue'
 import Actions from '@/components/Actions.vue'
 import Chat from '@/components/Chat.vue'
-import Video from '@/components/Video.vue'
-
+import Streaming from '@/components/Streaming.vue'
 export default {
   name: 'Room',
   components: {
     'board': Board,
     'actions': Actions,
     'chat': Chat,
-    'cameras': Video
+    'cameras': Streaming
   },
   data: () => ({
     room: {},
@@ -83,18 +82,18 @@ export default {
       width: 75%;
       height: 90%;
     }
-    #video-container{
+    #streaming-container{
       position: absolute;
       top: 0;
       right: 0;
-      height: 40%;
+      height: 60%;
       width: 25%;
     }
     #chat-container{
       position: absolute;
       bottom: 0;
       right: 0;
-      height: 60%;
+      height: 40%;
       width: 25%;
     }
     #actions-container{
