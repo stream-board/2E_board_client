@@ -15,6 +15,7 @@ export default {
     this.$bus.on('activate-cam', this.toggleVideo);
     this.$bus.on('block-cam', this.toggleVideo);
     this.$bus.on('ask-for-mic', this.askForWord);
+    this.$bus.on('mute-mic', this.muteAll);
     componentLoaded(this);
     
   },

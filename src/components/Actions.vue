@@ -7,7 +7,7 @@
       </v-flex>
       <v-spacer></v-spacer>
       <div class="divider-actions"></div>
-      <v-flex xs1>
+      <v-flex xs1 v-if="admin!=true">
         <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForMic()">
             <v-icon>pan_tool</v-icon>
@@ -16,7 +16,7 @@
         </v-tooltip>
       </v-flex>
       <v-flex xs1>
-        <v-tooltip v-if="mic" top>
+        <v-tooltip v-if="admin" top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="muteMic()">
             <v-icon>mic</v-icon>
           </v-btn>
@@ -188,7 +188,7 @@ export default {
       this.$bus.emit('ask-for-mic')
     },
     muteMic () {
-      this.mic = false
+      this.mic = true
       this.$bus.emit('mute-mic')
     },
     unmuteMic () {
