@@ -11,33 +11,7 @@ export default {
     let user = JSON.parse(localStorage.getItem('user'))
     let URL = `ec2-34-228-226-216.compute-1.amazonaws.com:4002?room=${this.$route.params.roomid}&nick=${user.nickname}&id=${user.id}`
     // eslint-disable-next-line
-    this.socket =  io(URL)
-    this.$bus.on('ask-for-turn', this.askForTurn)
-    this.$bus.on('take-back-pencil', this.takeBackPencil)
-    this.$bus.on('change-color', (data) => {
-      this.selectedColor = data
-      this.updateCursor()
-    })
-    this.$bus.on('change-thickness', (data) => {
-      this.selectedThickness = data.value
-      this.updateCursor()
-    })
-    this.$bus.on('change-type', (data) => {
-      this.selectedType = data
-      this.updateCursor()
-    })
-    this.$bus.on('clear-board', () => {
-      this.clearBoard()
-    })
-    this.$bus.on('user-disconnected', () => {
-      this.socket.disconnect()
-    })
-    this.socket.on('newDrawer', (data) => {
-      this.$bus.emit('new-drawer', data)
-    })
-    this.socket.on('userDisconnected', (data) => {
-      this.$bus.emit('user-disconnected', data)
-    })
+    this.socket = io(URL)
     componentLoaded(this.$route.params.roomid, this)
     window.setTimeout(() => this.updateCursor(), 50)
   },
@@ -88,6 +62,7 @@ export default {
 function componentLoaded (roomId, _this) {
   var $swal = _this.$swal
   var socket = _this.socket
+  var $bus = _this.$bus
 
   var isPenDown = false
   var snapshot
@@ -103,6 +78,7 @@ function componentLoaded (roomId, _this) {
 
   function init () {
     registerSocketListeners()
+    registerBusListeners()
     initCanvas()
     registerInputListeners()
   }
@@ -126,7 +102,36 @@ function componentLoaded (roomId, _this) {
     document.ontouchend = touchUpListener
   }
 
+  function registerBusListeners () {
+    $bus.on('ask-for-turn', _this.askForTurn)
+    $bus.on('take-back-pencil', _this.takeBackPencil)
+    $bus.on('change-color', (data) => {
+      _this.selectedColor = data
+      _this.updateCursor()
+    })
+    $bus.on('change-thickness', (data) => {
+      _this.selectedThickness = data.value
+      _this.updateCursor()
+    })
+    $bus.on('change-type', (data) => {
+      _this.selectedType = data
+      _this.updateCursor()
+    })
+    $bus.on('clear-board', () => {
+      _this.clearBoard()
+    })
+    $bus.on('user-disconnected', () => {
+      socket.disconnect()
+    })
+  }
+
   function registerSocketListeners () {
+    socket.on('newDrawer', (data) => {
+      $bus.emit('new-drawer', data)
+    })
+    socket.on('userDisconnected', (data) => {
+      $bus.emit('user-disconnected', data)
+    })
     socket.on('admin', function () {
       _this.isAllowed = true
       _this.setAdmin()
