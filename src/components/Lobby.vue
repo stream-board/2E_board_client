@@ -165,31 +165,33 @@ import { CATEGORIES } from '../constants/constants'
 
 export default {
   name: 'Lobby',
-  mounted () {
-    this.$apollo.query({
-      query: ALL_ROOMS_QUERY
-    }).then((result) => {
-      let rooms = []
-      result.data.allRooms.forEach((item) => {
-        console.log(item)
-        let newCategory = this.categories.filter((category) => {
-          return category.value === item.categoryRoom
-        })[0]
-        if (!newCategory) {
-          newCategory = this.categories[0]
-        }
-        let room = {
-          idRoom: item.idRoom,
-          owner: item.owner,
-          nameRoom: item.nameRoom,
-          descriptionRoom: item.descriptionRoom,
-          category: newCategory
-        }
-        rooms.push(room)
-        this.roomsList = rooms
+  beforeRouteEnter (to, from, next) {
+    next(vm => {
+      vm.$apollo.query({
+        query: ALL_ROOMS_QUERY
+      }).then((result) => {
+        let rooms = []
+        result.data.allRooms.forEach((item) => {
+          console.log(item)
+          let newCategory = vm.categories.filter((category) => {
+            return category.value === item.categoryRoom
+          })[0]
+          if (!newCategory) {
+            newCategory = vm.categories[0]
+          }
+          let room = {
+            idRoom: item.idRoom,
+            owner: item.owner,
+            nameRoom: item.nameRoom,
+            descriptionRoom: item.descriptionRoom,
+            category: newCategory
+          }
+          rooms.push(room)
+          vm.roomsList = rooms
+        })
+      }).catch((error) => {
+        console.log(error)
       })
-    }).catch((error) => {
-      console.log(error)
     })
   },
   data () {

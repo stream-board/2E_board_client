@@ -1,48 +1,6 @@
 <template>
   <div class="board-container">
     <canvas id="board" height="720" width="1280"></canvas>
-    <v-dialog v-model="petitionDialog" max-width="500">
-        <v-card v-if="!secondDialog">
-          <v-card-title class="headline">Turn Petition</v-card-title>
-          <v-card-text>User {{petitionData.nick}} wants to use the board</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="error" @click.native="disapprovePetition(); secondDialog = true">No, disapprove</v-btn>
-            <v-btn color="primary" @click.native="approvePetition(); secondDialog = true">Yes, approve</v-btn>
-          </v-card-actions>
-        </v-card>
-        <v-card v-else>
-          <v-card-title class="headline">Turn Petition</v-card-title>
-          <v-card-text v-if="answer">You approved user's petition</v-card-text>
-          <v-card-text v-else>You disapproved user's petition</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="primary" @click.native.stop="dialog = false">OK</v-btn>
-          </v-card-actions>
-        </v-card>
-    </v-dialog>
-    <v-dialog v-model="answerDialog" max-width="500">
-        <v-card>
-          <v-card-title class="headline">Turn Petition</v-card-title>
-          <v-card-text>User {{petitionData.nick}} wants to use the board</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="error" @click.native="disapprovePetition()">No, disapprove</v-btn>
-            <v-btn color="primary" @click.native="approvePetition()">Yes, approve</v-btn>
-          </v-card-actions>
-        </v-card>
-    </v-dialog>
-    <v-dialog v-model="petitionDialog" max-width="500">
-        <v-card>
-          <v-card-title class="headline">Turn Petition</v-card-title>
-          <v-card-text>User {{petitionData.nick}} wants to use the board</v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="error" @click.native="disapprovePetition()">No, disapprove</v-btn>
-            <v-btn color="primary" @click.native="approvePetition()">Yes, approve</v-btn>
-          </v-card-actions>
-        </v-card>
-    </v-dialog>
   </div>
 </template>
 

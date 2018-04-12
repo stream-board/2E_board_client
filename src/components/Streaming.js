@@ -94,7 +94,7 @@ function componentLoaded (_this) {
   console.log('Connecting to signaling server')
   initlets()
   // eslint-disable-next-line
-  signalingSocket = io (SIGNALING_SERVER)
+  signalingSocket = io(SIGNALING_SERVER)
   signalingSocket.on('connect', function () {
     console.log('Connected to signaling server')
     console.log('Connected to room' + channel)
