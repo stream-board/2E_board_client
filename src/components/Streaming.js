@@ -396,6 +396,7 @@ function componentLoaded (_this) {
     if (!roomMaster) {
       console.log('Muting localstream audio');
       local_media_stream.getAudioTracks()[0].enabled = false;
+      local_media_stream.getVideoTracks()[0].enabled = false;
       //document.getElementById('muted').innerHTML = 'Muted: True';
     }
   });
@@ -423,7 +424,8 @@ function componentLoaded (_this) {
 
     if (am_i_speaker) {
       local_media_stream.getAudioTracks()[0].enabled = true;
-      $('#local_video').css('border', '');
+      local_media_stream.getVideoTracks()[0].enabled = true;
+      //$('#local_video').css('border', '');
       //document.getElementById('muted').innerHTML = 'Muted: False';
     }
   });
@@ -485,6 +487,7 @@ function componentLoaded (_this) {
         console.log('am_i_master: ' + roomMaster);
         if (!am_i_speaker && !roomMaster) {
           local_media_stream.getAudioTracks()[0].enabled = false;
+          local_media_stream.getVideoTracks()[0].enabled = false;
           //document.getElementById('muted').innerHTML = 'Muted: True';
         }
         if (callback) callback();
