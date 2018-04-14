@@ -16,13 +16,13 @@
         </v-tooltip>
       </v-flex>
       <v-flex xs1>
-        <v-tooltip v-if="false" top>
+        <v-tooltip v-if="admin" top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="muteMic()">
             <v-icon>mic</v-icon>
           </v-btn>
           <span>Mute mic</span>
         </v-tooltip>
-        <v-tooltip v-if="admin">
+        <v-tooltip v-if="false">
           <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="unmuteMic()">
             <v-icon>mic_off</v-icon>
           </v-btn>

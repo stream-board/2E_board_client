@@ -367,10 +367,11 @@ function componentLoaded (_this) {
           'User has the permission',
           'success'
         )
-        signaling_socket.emit('relayGiveWord', {
-          'channel': channel,
-          'asker': data.asker
-        });
+      signaling_socket.emit('relayGiveWord', {
+        'channel': channel,
+        'asker': data.asker,
+        'give': true
+      });
       } else {
         $swal(
           'Disapproved',
@@ -379,6 +380,11 @@ function componentLoaded (_this) {
         )
         //socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
       }
+      signaling_socket.emit('relayGiveWord', {
+        'channel': channel,
+        'asker': data.asker,
+        'give': false
+      });
     })
   })
 
@@ -395,6 +401,19 @@ function componentLoaded (_this) {
   });
 
   signaling_socket.on('giveWord', function(config) {
+    if (config.am_i_speaker) {
+      $swal({
+        title: 'Permission granted',
+        text: 'You can talk now',
+        type: 'success'
+      })
+    } else {
+      $swal({
+        title: 'Permission denied',
+        text: 'You can\'t talk',
+        type: 'error'
+      })
+    }
     am_i_speaker = config.am_i_speaker;
     speakers = config.speakers;
 
