@@ -235,7 +235,7 @@ export default {
     align-items: flex-end;
   }
   .self .message-text{
-    background-color: #174557;
+    background-color:  ;
     color: #FFFFFF;
     border-bottom-left-radius: 5px;
     border-top-left-radius: 5px;

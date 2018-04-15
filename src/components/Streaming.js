@@ -69,7 +69,7 @@ function componentLoaded (_this) {
   // let SIGNALING_SERVER = 'ws://192.168.99.101:8444';
   let USE_AUDIO = true
   let USE_VIDEO = true
-  let MUTE_AUDIO_BY_DEFAULT = true
+  let MUTE_AUDIO_BY_DEFAULT = false
   /** You should probably use a different stun server doing commercial stuff **/
   /** Also see: https://gist.github.com/zziuni/3741933 **/
   let ICE_SERVERS = [{

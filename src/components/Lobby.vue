@@ -128,6 +128,7 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <v-btn color="primary" @click="refresh()">REFRESH</v-btn>
         </v-flex>
         <v-list class="list mt-5" two-line>
           <v-flex xs12>
@@ -167,31 +168,7 @@ export default {
   name: 'Lobby',
   beforeRouteEnter (to, from, next) {
     next(vm => {
-      vm.$apollo.query({
-        query: ALL_ROOMS_QUERY
-      }).then((result) => {
-        let rooms = []
-        result.data.allRooms.forEach((item) => {
-          console.log(item)
-          let newCategory = vm.categories.filter((category) => {
-            return category.value === item.categoryRoom
-          })[0]
-          if (!newCategory) {
-            newCategory = vm.categories[0]
-          }
-          let room = {
-            idRoom: item.idRoom,
-            owner: item.owner,
-            nameRoom: item.nameRoom,
-            descriptionRoom: item.descriptionRoom,
-            category: newCategory
-          }
-          rooms.push(room)
-          vm.roomsList = rooms
-        })
-      }).catch((error) => {
-        console.log(error)
-      })
+      vm.fetchData()
     })
   },
   data () {
@@ -209,6 +186,38 @@ export default {
     }
   },
   methods: {
+    fetchData () {
+      console.log('fetching Data')
+      this.$apollo.query({
+        query: ALL_ROOMS_QUERY,
+        fetchPolicy: 'network-only'
+      }).then((result) => {
+        let rooms = []
+        result.data.allRooms.forEach((item) => {
+          let newCategory = this.categories.filter((category) => {
+            return category.value === item.categoryRoom
+          })[0]
+          if (!newCategory) {
+            newCategory = this.categories[0]
+          }
+          let room = {
+            idRoom: item.idRoom,
+            owner: item.owner,
+            nameRoom: item.nameRoom,
+            descriptionRoom: item.descriptionRoom,
+            category: newCategory
+          }
+          rooms.push(room)
+          this.roomsList = rooms
+        })
+      }).catch((error) => {
+        console.log(error)
+      })
+    },
+    refresh () {
+      this.fetchData()
+      console.log('refresh')
+    },
     joinRoom (id) {
       let user = JSON.parse(localStorage.getItem('user'))
       this.$apollo.mutate({
@@ -256,7 +265,6 @@ export default {
       this.selectedCategory = category
     },
     checkCategory (category) {
-      console.log(category)
       if (this.selectedCategory === 'all') {
         return true
       } else if (this.selectedCategory === category) {
