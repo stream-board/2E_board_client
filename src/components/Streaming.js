@@ -241,9 +241,9 @@ function componentLoaded (_this) {
    */
   signalingSocket.on('sessionDescription', function (config) {
     console.log('Remote description received: ', config)
-    let peerId = config.peerId
+    let peerId = config.peer_id
     let peer = peers[peerId]
-    let remoteDescription = config.sessionDescription
+    let remoteDescription = config.session_description
     console.log(config.session_description)
 
     let desc = new RTCSessionDescription(remoteDescription)
