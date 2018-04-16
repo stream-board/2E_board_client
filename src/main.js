@@ -12,7 +12,9 @@ import Vuetify from 'vuetify'
 import 'vuetify/dist/vuetify.min.css'
 import Vuex from 'vuex'
 import VueBus from 'vue-bus'
+import VueCarousel from 'vue-carousel'
 
+Vue.use(VueCarousel);
 Vue.use(Vuex)
 
 const store = new Vuex.Store({

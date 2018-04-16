@@ -8,16 +8,17 @@ var master;
 var channel;
 var speakers;
 var am_i_speaker;
+var user;
 export default {
   name: 'Streaming',
   mounted: function() {
+    user = JSON.parse(localStorage.getItem('user'))
     channel = this.$route.params.roomid;
     this.$bus.on('activate-cam', this.toggleVideo);
     this.$bus.on('block-cam', this.toggleVideo);
     this.$bus.on('ask-for-mic', this.askForWord);
     this.$bus.on('mute-mic', this.muteAll);
     componentLoaded(this);
-    
   },
   methods:{
     amIMaster () {
@@ -26,7 +27,8 @@ export default {
     askForWord () {
       console.log( "emiting askForWord" )
       signaling_socket.emit('relayAskForWord', {
-        'channel': channel
+        'channel': channel,
+        'nickname': user.nickname
       })
     },
     muteAll () {
@@ -52,18 +54,6 @@ export default {
       console.log('Disabling myself video')
       local_media_stream.getVideoTracks()[0].enabled =
         !(local_media_stream.getVideoTracks()[0].enabled);
-    },
-    setSpeakers (speakers, master) {
-      console.log('rendering speakers')
-      if (!roomMaster) {
-        $('video').css('border', '9px solid red')
-      } else {
-        $('video').not('#local_video').css('border', '9px solid red')
-      }
-      for (var speaker in speakers) {
-        $('#' + speaker).css('border', '')
-      }
-      $('#' + master).css('border', '')
     }
   }
 }
@@ -141,10 +131,10 @@ function componentLoaded (_this) {
     initVars();
   });
 
-  function join_chat_channel (channel, userdata) {
+  function join_chat_channel (channel, user) {
     signaling_socket.emit('join', {
       'channel': channel,
-      'userdata': userdata
+      'userdata': user
     });
   }
 
@@ -215,15 +205,9 @@ function componentLoaded (_this) {
       $( '#' + peer_id ).height( "100%" );
       $( '#' + peer_id ).width( "40%" );
       attachMediaStream(remote_media[0], event.stream);
-      console.log('speakers in css: ' + am_i_speaker);
-      console.log('master in css: ' + roomMaster);
-      if (!(peer_id in speakers) && peer_id != master) {
-        $('#' + peer_id).css('border', '9px solid red');
-        //remote_media.getAudioTracks()[0].enabled = false;
-      }
-      if (!roomMaster) {
-        $('#local_video').css('border', '9px solid red');
-      }
+      
+      videos.append([remote_media, 0]);
+
     };
 
     /* Add our local stream */
@@ -350,10 +334,10 @@ function componentLoaded (_this) {
   });
 
   signaling_socket.on('askForWord', function (data) {
-    console.log("someone asking word");
+    console.log( data.asker + " asking word");
     $swal({
       title: 'Talk petition',
-      text: `User ${data.asker} wants to use the board`,
+      text: `User ${user.nickname} wants to use the board`,
       type: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -364,27 +348,30 @@ function componentLoaded (_this) {
       if (result.value) {
         $swal(
           'Approved',
-          'User has the permission',
+          `User ${user.nickname} has the permission`,
           'success'
         )
       signaling_socket.emit('relayGiveWord', {
         'channel': channel,
         'asker': data.asker,
-        'give': true
+        'give': true,
+        "nickname": user.nickname
       });
       } else {
         $swal(
           'Disapproved',
-          'You disapproved the user',
+          `You disapproved the user ${user.nickname}`,
           'error'
         )
         //socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
+        signaling_socket.emit('relayGiveWord', {
+          'channel': channel,
+          'asker': data.asker,
+          'give': false,
+          "nickname": user.nickname
+        });
       }
-      signaling_socket.emit('relayGiveWord', {
-        'channel': channel,
-        'asker': data.asker,
-        'give': false
-      });
+      
     })
   })
 
@@ -392,7 +379,7 @@ function componentLoaded (_this) {
     var my_peer_id = config.my_peer_id;
     var master_id = config.master;
     speakers = {};
-    setSpeakers(speakers, master_id, roomMaster);
+    //setSpeakers(speakers, master_id, roomMaster);
     if (!roomMaster) {
       console.log('Muting localstream audio');
       local_media_stream.getAudioTracks()[0].enabled = false;
@@ -506,7 +493,8 @@ function componentLoaded (_this) {
 
   function askForWord () {
     signaling_socket.emit('relayAskForWord', {
-      'channel': channel
+      'channel': channel,
+      'nickname': user.nickname
     })
   }
 
@@ -529,17 +517,4 @@ function componentLoaded (_this) {
          !(local_media_stream.getVideoTracks()[0].enabled);
   }
 
-
-  function setSpeakers (speakers, master) {
-    console.log('rendering speakers')
-    if (!roomMaster) {
-      $('video').css('border', '9px solid red')
-    } else {
-      $('video').not('#local_video').css('border', '9px solid red')
-    }
-    for (var speaker in speakers) {
-      $('#' + speaker).css('border', '')
-    }
-    $('#' + master).css('border', '')
-  }
 }
