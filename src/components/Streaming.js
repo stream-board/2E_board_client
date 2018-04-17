@@ -1,29 +1,34 @@
-let signalingSocket /* our socket.io connection to our webserver */
-let localMediaStream /* our own microphone / webcam */
-let peers /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-let peerMediaElements /* keep track of our <video>/<audio> tags, indexed by peer_id */
-let roomMaster
-let master
-let channel
-let speakers
-let amISpeaker
+var signaling_socket; /* our socket.io connection to our webserver */
+var local_media_stream; /* our own microphone / webcam */
+var peers; /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
+var peer_media_elements; /* keep track of our <video>/<audio> tags, indexed by peer_id */
+var peer_html_videos;
+var roomMaster;
+var master;
+var channel;
+var speakers;
+var am_i_speaker;
+var user;
 export default {
   name: 'Streaming',
-  mounted: function () {
-    channel = this.$route.params.roomid
-    this.$bus.on('activate-cam', this.toggleVideo)
-    this.$bus.on('block-cam', this.toggleVideo)
-    this.$bus.on('ask-for-mic', this.askForWord)
-    this.$bus.on('mute-mic', this.muteAll)
-    componentLoaded(this)
+  mounted: function() {
+    user = JSON.parse(localStorage.getItem('user'))
+    channel = this.$route.params.roomid;
+    this.$bus.on('activate-cam', this.toggleVideo);
+    this.$bus.on('block-cam', this.toggleVideo);
+    this.$bus.on('ask-for-mic', this.askForWord);
+    this.$bus.on('mute-mic', this.muteAll);
+    componentLoaded(this);
   },
   methods: {
     amIMaster () {
       // document.getElementById('demo').innerHTML = roomMaster;
     },
     askForWord () {
-      signalingSocket.emit('relayAskForWord', {
-        'channel': channel
+      console.log( "emiting askForWord" )
+      signaling_socket.emit('relayAskForWord', {
+        'channel': channel,
+        'nickname': user.nickname
       })
     },
     muteAll () {
@@ -44,20 +49,8 @@ export default {
     },
     toggleVideo () {
       console.log('Disabling myself video')
-      localMediaStream.getVideoTracks()[0].enabled =
-        !(localMediaStream.getVideoTracks()[0].enabled)
-    },
-    setSpeakers (speakers, master) {
-      console.log('rendering speakers')
-      if (!roomMaster) {
-        $('video').css('border', '1px solid #f44336')
-      } else {
-        $('video').not('#local_video').css('border', '1px solid #f44336')
-      }
-      for (let speaker in speakers) {
-        $('#' + speaker).css('border', '')
-      }
-      $('#' + master).css('border', '')
+      local_media_stream.getVideoTracks()[0].enabled =
+        !(local_media_stream.getVideoTracks()[0].enabled);
     }
   }
 }
@@ -127,11 +120,11 @@ function componentLoaded (_this) {
     initlets()
   })
 
-  function joinChatChannel (channel, userdata) {
-    signalingSocket.emit('join', {
+  function join_chat_channel (channel, user) {
+    signaling_socket.emit('join', {
       'channel': channel,
-      'userdata': userdata
-    })
+      'userdata': user
+    });
   }
 
   /*
@@ -183,23 +176,17 @@ function componentLoaded (_this) {
       if (MUTE_AUDIO_BY_DEFAULT) {
         remoteMedia.attr('muted', 'true')
       }
-      remoteMedia.attr('controls', '')
-      remoteMedia.attr('id', peerId)
-      peerMediaElements[peerId] = remoteMedia
-      $('#client-videos').append(remoteMedia)
-      $('#' + peerId).height('100%')
-      $('#' + peerId).width('40%')
-      attachMediaStream(remoteMedia[0], event.stream)
-      console.log('speakers in css: ' + amISpeaker)
-      console.log('master in css: ' + roomMaster)
-      if (!(peerId in speakers) && peerId !== master) {
-        $('#' + peerId).css('border', '1px solid #f44336')
-        // remote_media.getAudioTracks()[0].enabled = false;
-      }
-      if (!roomMaster) {
-        $('#local_video').css('border', '1px solid #f44336')
-      }
-    }
+      remote_media.attr('controls', '');
+      remote_media.attr('id', peer_id);
+      peer_media_elements[peer_id] = remote_media;
+      $('#client-videos').append(remote_media);
+      $( '#' + peer_id ).height( "100%" );
+      $( '#' + peer_id ).width( "40%" );
+      attachMediaStream(remote_media[0], event.stream);
+      
+      videos.append([remote_media, 0]);
+
+    };
 
     /* Add our local stream */
     peerConnection.addStream(localMediaStream)
@@ -321,11 +308,11 @@ function componentLoaded (_this) {
     master = config.roomMaster
   })
 
-  signalingSocket.on('askForWord', function (data) {
-    console.log('someone asking word')
+  signaling_socket.on('askForWord', function (data) {
+    console.log( data.asker + " asking word");
     $swal({
       title: 'Talk petition',
-      text: `User ${data.asker} wants to use the board`,
+      text: `User ${user.nickname} wants to use the board`,
       type: 'question',
       showCancelButton: true,
       confirmButtonColor: '#3085d6',
@@ -336,47 +323,72 @@ function componentLoaded (_this) {
       if (result.value) {
         $swal(
           'Approved',
-          'User has the permission',
+          `User ${user.nickname} has the permission`,
           'success'
         )
-        signalingSocket.emit('relayGiveWord', {
-          'channel': channel,
-          'asker': data.asker
-        })
+      signaling_socket.emit('relayGiveWord', {
+        'channel': channel,
+        'asker': data.asker,
+        'give': true,
+        "nickname": user.nickname
+      });
       } else {
         $swal(
           'Disapproved',
-          'You disapproved the user',
+          `You disapproved the user ${user.nickname}`,
           'error'
         )
-        // socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
+        //socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
+        signaling_socket.emit('relayGiveWord', {
+          'channel': channel,
+          'asker': data.asker,
+          'give': false,
+          "nickname": user.nickname
+        });
       }
+      
     })
   })
 
-  signalingSocket.on('muteAll', function (config) {
-    let masterId = config.master
-    speakers = {}
-    setSpeakers(speakers, masterId, roomMaster)
+  signaling_socket.on('muteAll', function(config) {
+    var my_peer_id = config.my_peer_id;
+    var master_id = config.master;
+    speakers = {};
+    //setSpeakers(speakers, master_id, roomMaster);
     if (!roomMaster) {
-      console.log('Muting localstream audio')
-      localMediaStream.getAudioTracks()[0].enabled = false
-      // document.getElementById('muted').innerHTML = 'Muted: True';
+      console.log('Muting localstream audio');
+      local_media_stream.getAudioTracks()[0].enabled = false;
+      local_media_stream.getVideoTracks()[0].enabled = false;
+      //document.getElementById('muted').innerHTML = 'Muted: True';
     }
   })
 
-  signalingSocket.on('giveWord', function (config) {
-    amISpeaker = config.amISpeaker
-    speakers = config.speakers
+  signaling_socket.on('giveWord', function(config) {
+    if (config.am_i_speaker) {
+      $swal({
+        title: 'Permission granted',
+        text: 'You can talk now',
+        type: 'success'
+      })
+    } else {
+      $swal({
+        title: 'Permission denied',
+        text: 'You can\'t talk',
+        type: 'error'
+      })
+    }
+    am_i_speaker = config.am_i_speaker;
+    speakers = config.speakers;
 
     for (let speaker in speakers) {
       $('#' + speaker).css('border', '')
     }
 
-    if (amISpeaker) {
-      localMediaStream.getAudioTracks()[0].enabled = true
-      $('#local_video').css('border', '')
-      // document.getElementById('muted').innerHTML = 'Muted: False';
+    if (am_i_speaker) {
+      local_media_stream.getAudioTracks()[0].enabled = true;
+      local_media_stream.getVideoTracks()[0].enabled = true;
+      //$('#local_video').css('border', '');
+      //document.getElementById('muted').innerHTML = 'Muted: False';
     }
   })
 
@@ -415,48 +427,68 @@ function componentLoaded (_this) {
       navigator.msGetUserMedia)
 
     navigator.getUserMedia({
-      'audio': USE_AUDIO,
-      'video': USE_VIDEO
-    },
-    function (stream) { /* user accepted access to a/v */
-      console.log('Access granted to audio/video')
-      localMediaStream = stream
-      let localMedia = USE_VIDEO ? $('<video>') : $('<audio>')
-      localMedia.attr('autoplay', 'autoplay')
-      localMedia.attr('muted', 'true') /* always mute ourselves by default */
-      localMedia.attr('controls', '')
-      localMedia.attr('id', 'local_video')
-      // console.log( $('#all-videos').innerHTML );
-      $('#master-videos').append(localMedia)
-      $('#local_video').height('40%')
-      $('#local_video').width('100%')
-      attachMediaStream(localMedia[0], stream)
-      // document.getElementById('muted').innerHTML = 'Muted: False';
-      console.log('am_i_speaker: ' + amISpeaker)
-      console.log('am_i_master: ' + roomMaster)
-      if (!amISpeaker && !roomMaster) {
-        localMediaStream.getAudioTracks()[0].enabled = false
-        // document.getElementById('muted').innerHTML = 'Muted: True';
-      }
-      if (callback) callback()
-    },
-    function () { /* user denied access to a/v */
-      console.log('Access denied for audio/video')
-      alert('You chose not to provide access to the camera/microphone, demo will not work.')
-      if (errorback) errorback()
+        'audio': USE_AUDIO,
+        'video': USE_VIDEO
+      },
+      function(stream) { /* user accepted access to a/v */
+        console.log('Access granted to audio/video');
+        local_media_stream = stream;
+        var local_media = USE_VIDEO ? $('<video>') : $('<audio>');
+        local_media.attr('autoplay', 'autoplay');
+        local_media.attr('muted', 'true'); /* always mute ourselves by default */
+        local_media.attr('controls', '');
+        local_media.attr('id', 'local_video');
+        //console.log( $('#all-videos').innerHTML );
+        $('#master-videos').append(local_media);
+        $( '#local_video' ).height( "40%" );
+        $( '#local_video' ).width( "100%" );
+        attachMediaStream(local_media[0], stream);
+        //document.getElementById('muted').innerHTML = 'Muted: False';
+        console.log('am_i_speaker: ' + am_i_speaker);
+        console.log('am_i_master: ' + roomMaster);
+        if (!am_i_speaker && !roomMaster) {
+          local_media_stream.getAudioTracks()[0].enabled = false;
+          local_media_stream.getVideoTracks()[0].enabled = false;
+          //document.getElementById('muted').innerHTML = 'Muted: True';
+        }
+        if (callback) callback();
+      },
+      function() { /* user denied access to a/v */
+        console.log('Access denied for audio/video');
+        alert('You chose not to provide access to the camera/microphone, demo will not work.');
+        if (errorback) errorback();
+      });
+  }
+  
+
+  function amIMaster () {
+    //document.getElementById('demo').innerHTML = roomMaster;
+  }
+
+  function askForWord () {
+    signaling_socket.emit('relayAskForWord', {
+      'channel': channel,
+      'nickname': user.nickname
     })
   }
 
-  function setSpeakers (speakers, master) {
-    console.log('rendering speakers')
-    if (!roomMaster) {
-      $('video').css('border', '1px solid #f44336')
-    } else {
-      $('video').not('#local_video').css('border', '1px solid #f44336')
-    }
-    for (let speaker in speakers) {
-      $('#' + speaker).css('border', '')
-    }
-    $('#' + master).css('border', '')
+  function muteAll () {
+    console.log('Muting clients')
+    signaling_socket.emit('relayMuteAll', {
+      'channel': channel
+    })
+  }  
+
+  function toggleAudio () {
+    console.log('Muting myself')
+    local_media_stream.getAudioTracks()[0].enabled =
+         !(local_media_stream.getAudioTracks()[0].enabled);
   }
+
+  function toggleVideo () {
+    console.log('Disabling myself video')
+    local_media_stream.getVideoTracks()[0].enabled =
+         !(local_media_stream.getVideoTracks()[0].enabled);
+  }
+
 }
