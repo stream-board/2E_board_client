@@ -75,7 +75,12 @@ function componentLoaded (_this) {
   /** Also see: https://gist.github.com/zziuni/3741933 **/
   let ICE_SERVERS = [{
     url: 'stun:stun.l.google.com:19302'
-  }]
+    },
+    {
+      url:'turn:user@35.174.115.76:3478',
+      credential: 'root'
+    }
+]
 
   function initlets () {
     signalingSocket = null 
