@@ -75,10 +75,6 @@ function componentLoaded (_this) {
   let ICE_SERVERS = [
     {
       url: 'stun:stun.l.google.com:19302'
-    },
-    {
-      url: 'turn:user@35.174.115.76:3478',
-      credential: 'root'
     }
   ]
 
@@ -189,12 +185,11 @@ function componentLoaded (_this) {
       if (MUTE_AUDIO_BY_DEFAULT) {
         remoteMedia.attr('muted', 'true')
       }
-      remoteMedia.attr('controls', '')
       remoteMedia.attr('id', peerId)
+      remoteMedia.attr('class', 'remote-video')
       peerMediaElements[peerId] = remoteMedia
-      $('#client-videos').append(remoteMedia)
-      $('#' + peerId).height('100%')
-      $('#' + peerId).width('40%')
+      $('#client-videos').append(`<slide id="slide-${peerId}"></slide>`)
+      $(`#slide-${peerId}`).append(remoteMedia)
       attachMediaStream(remoteMedia[0], event.stream)
       // videos.append([remoteMedia, 0])
     }
@@ -325,17 +320,18 @@ function componentLoaded (_this) {
       text: `User ${user.nickname} wants to use the board`,
       type: 'question',
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
+      confirmButtonColor: '#26d3cd',
+      cancelButtonColor: '#f44336',
       confirmButtonText: 'Yes, approve',
       cancelButtonText: 'No, disapprove'
     }).then((result) => {
       if (result.value) {
-        $swal(
-          'Approved',
-          `User ${user.nickname} has the permission`,
-          'success'
-        )
+        $swal({
+          title: 'Approved',
+          text: `User ${user.nickname} has the permission`,
+          type: 'success',
+          confirmButtonColor: '#26d3cd'
+        })
         signalingSocket.emit('relayGiveWord', {
           'channel': channel,
           'asker': data.asker,
@@ -343,11 +339,12 @@ function componentLoaded (_this) {
           'nickname': user.nickname
         })
       } else {
-        $swal(
-          'Disapproved',
-          `You disapproved the user ${user.nickname}`,
-          'error'
-        )
+        $swal({
+          title: 'Disapproved',
+          text: `You disapproved the user ${user.nickname}`,
+          type: 'error',
+          confirmButtonColor: '#26d3cd'
+        })
         // socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
         signalingSocket.emit('relayGiveWord', {
           'channel': channel,
@@ -375,13 +372,15 @@ function componentLoaded (_this) {
       $swal({
         title: 'Permission granted',
         text: 'You can talk now',
-        type: 'success'
+        type: 'success',
+        confirmButtonColor: '#26d3cd'
       })
     } else {
       $swal({
         title: 'Permission denied',
         text: 'You can\'t talk',
-        type: 'error'
+        type: 'error',
+        confirmButtonColor: '#26d3cd'
       })
     }
     amISpeaker = config.am_i_speaker
@@ -443,12 +442,9 @@ function componentLoaded (_this) {
       var localMedia = USE_VIDEO ? $('<video>') : $('<audio>')
       localMedia.attr('autoplay', 'autoplay')
       localMedia.attr('muted', 'true') /* always mute ourselves by default */
-      localMedia.attr('controls', '')
       localMedia.attr('id', 'local_video')
       // console.log( $('#all-videos').innerHTML )
       $('#master-videos').append(localMedia)
-      $('#local_video').height('40%')
-      $('#local_video').width('100%')
       attachMediaStream(localMedia[0], stream)
       // document.getElementById('muted').innerHTML = 'Muted: False'
       console.log('amISpeaker: ' + amISpeaker)

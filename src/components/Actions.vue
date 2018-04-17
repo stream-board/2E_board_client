@@ -15,8 +15,8 @@
           <span>Ask for mic</span>
         </v-tooltip>
       </v-flex>
-      <v-flex xs1>
-        <v-tooltip v-if="admin" top>
+      <v-flex xs1 v-if="admin">
+        <v-tooltip top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="muteMic()">
             <v-icon>mic</v-icon>
           </v-btn>

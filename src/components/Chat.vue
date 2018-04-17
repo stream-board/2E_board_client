@@ -82,6 +82,7 @@ export default {
       }
     }).then((result) => {
       let data = result.data.chatMsgByRoomId.slice()
+      console.log(data)
       let promises = []
       let newMessages = []
       data.forEach((message) => {
@@ -230,7 +231,6 @@ export default {
   .self {
     /* switch horizontal layout */
     justify-content: flex-end;
-    justify-items: flex-end;
     /* switch vertical layout */
     align-items: flex-end;
   }
