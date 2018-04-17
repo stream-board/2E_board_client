@@ -1,13 +1,13 @@
-var signaling_socket; /* our socket.io connection to our webserver */
-var local_media_stream; /* our own microphone / webcam */
+var signalingSocket; /* our socket.io connection to our webserver */
+var localMediaStream; /* our own microphone / webcam */
 var peers; /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-var peer_media_elements; /* keep track of our <video>/<audio> tags, indexed by peer_id */
+var peerMediaElements; /* keep track of our <video>/<audio> tags, indexed by peer_id */
 var peer_html_videos;
 var roomMaster;
 var master;
 var channel;
 var speakers;
-var am_i_speaker;
+var amISpeaker;
 var user;
 export default {
   name: 'Streaming',
@@ -18,6 +18,7 @@ export default {
     this.$bus.on('block-cam', this.toggleVideo);
     this.$bus.on('ask-for-mic', this.askForWord);
     this.$bus.on('mute-mic', this.muteAll);
+    this.$bus.on('unmute-mic', this.stopTalking);
     componentLoaded(this);
   },
   methods: {
@@ -26,7 +27,7 @@ export default {
     },
     askForWord () {
       console.log( "emiting askForWord" )
-      signaling_socket.emit('relayAskForWord', {
+      signalingSocket.emit('relayAskForWord', {
         'channel': channel,
         'nickname': user.nickname
       })
@@ -39,7 +40,7 @@ export default {
     toggleAudio () {
       if (localMediaStream.getAudioTracks()[0].enabled) {
         $('#local_video').css('border', '1px solid #f44336')
-        signalingSocket.emit('relayMuteMyself', {'channel': channel})
+        t.emit('relayMuteMyself', {'channel': channel})
       } else {
         $('#local_video').css('border', '')
         signalingSocket.emit('relayUnMuteMyself', {'channel': channel})
@@ -49,8 +50,15 @@ export default {
     },
     toggleVideo () {
       console.log('Disabling myself video')
-      local_media_stream.getVideoTracks()[0].enabled =
-        !(local_media_stream.getVideoTracks()[0].enabled);
+      localMediaStream.getVideoTracks()[0].enabled =
+        !(localMediaStream.getVideoTracks()[0].enabled);
+    },
+    stopTalking () {
+      console.log('Disabling myself video and audio')
+      localMediaStream.getVideoTracks()[0].enabled =
+        false;
+      localMediaStream.getAudioTracks()[0].enabled =
+        false;
     }
   }
 }
@@ -70,15 +78,17 @@ function componentLoaded (_this) {
   }]
 
   function initlets () {
-    signalingSocket = null /* our socket.io connection to our webserver */
-    localMediaStream = null /* our own microphone / webcam */
-    peers = {} /* keep track of our peer connections, indexed by peer_id (aka socket.io id) */
-    peerMediaElements = {} /* keep track of our <video>/<audio> tags, indexed by peer_id */
+    signalingSocket = null 
+    localMediaStream = null 
+    peers = {} 
+    peerMediaElements = {} 
     roomMaster = false
     master = null
     speakers = {}
-    amISpeaker = false
-  }
+    amISpeaker = false;
+}
+
+
 
   let attachMediaStream = function (element, stream) {
     element.srcObject = stream
@@ -120,8 +130,8 @@ function componentLoaded (_this) {
     initlets()
   })
 
-  function join_chat_channel (channel, user) {
-    signaling_socket.emit('join', {
+  function joinChatChannel (channel, user) {
+    signalingSocket.emit('join', {
       'channel': channel,
       'userdata': user
     });
@@ -176,15 +186,15 @@ function componentLoaded (_this) {
       if (MUTE_AUDIO_BY_DEFAULT) {
         remoteMedia.attr('muted', 'true')
       }
-      remote_media.attr('controls', '');
-      remote_media.attr('id', peer_id);
-      peer_media_elements[peer_id] = remote_media;
-      $('#client-videos').append(remote_media);
-      $( '#' + peer_id ).height( "100%" );
-      $( '#' + peer_id ).width( "40%" );
-      attachMediaStream(remote_media[0], event.stream);
+      remoteMedia.attr('controls', '');
+      remoteMedia.attr('id', peerId);
+      peerMediaElements[peerId] = remoteMedia;
+      $('#client-videos').append(remoteMedia);
+      $( '#' + peerId ).height( "100%" );
+      $( '#' + peerId ).width( "40%" );
+      attachMediaStream(remoteMedia[0], event.stream);
       
-      videos.append([remote_media, 0]);
+      //videos.append([remoteMedia, 0]);
 
     };
 
@@ -285,7 +295,7 @@ function componentLoaded (_this) {
    * that peer. If it was this client that left a channel, they'll also
    * receive the removePeers. If this client was disconnected, they
    * wont receive removePeers, but rather the
-   * signaling_socket.on('disconnect') code will kick in and tear down
+   * signalingSocket.on('disconnect') code will kick in and tear down
    * all the peer sessions.
    */
   signalingSocket.on('removePeer', function (config) {
@@ -308,7 +318,7 @@ function componentLoaded (_this) {
     master = config.roomMaster
   })
 
-  signaling_socket.on('askForWord', function (data) {
+  signalingSocket.on('askForWord', function (data) {
     console.log( data.asker + " asking word");
     $swal({
       title: 'Talk petition',
@@ -326,7 +336,7 @@ function componentLoaded (_this) {
           `User ${user.nickname} has the permission`,
           'success'
         )
-      signaling_socket.emit('relayGiveWord', {
+      signalingSocket.emit('relayGiveWord', {
         'channel': channel,
         'asker': data.asker,
         'give': true,
@@ -339,7 +349,7 @@ function componentLoaded (_this) {
           'error'
         )
         //socket.emit('answerForBoard', {answer: false, socketId: data.socketId})
-        signaling_socket.emit('relayGiveWord', {
+        signalingSocket.emit('relayGiveWord', {
           'channel': channel,
           'asker': data.asker,
           'give': false,
@@ -350,20 +360,20 @@ function componentLoaded (_this) {
     })
   })
 
-  signaling_socket.on('muteAll', function(config) {
+  signalingSocket.on('muteAll', function(config) {
     var my_peer_id = config.my_peer_id;
     var master_id = config.master;
     speakers = {};
     //setSpeakers(speakers, master_id, roomMaster);
     if (!roomMaster) {
       console.log('Muting localstream audio');
-      local_media_stream.getAudioTracks()[0].enabled = false;
-      local_media_stream.getVideoTracks()[0].enabled = false;
+      localMediaStream.getAudioTracks()[0].enabled = false;
+      localMediaStream.getVideoTracks()[0].enabled = false;
       //document.getElementById('muted').innerHTML = 'Muted: True';
     }
   })
 
-  signaling_socket.on('giveWord', function(config) {
+  signalingSocket.on('giveWord', function(config) {
     if (config.am_i_speaker) {
       $swal({
         title: 'Permission granted',
@@ -377,16 +387,16 @@ function componentLoaded (_this) {
         type: 'error'
       })
     }
-    am_i_speaker = config.am_i_speaker;
+    amISpeaker = config.am_i_speaker;
     speakers = config.speakers;
 
     for (let speaker in speakers) {
       $('#' + speaker).css('border', '')
     }
 
-    if (am_i_speaker) {
-      local_media_stream.getAudioTracks()[0].enabled = true;
-      local_media_stream.getVideoTracks()[0].enabled = true;
+    if (amISpeaker) {
+      localMediaStream.getAudioTracks()[0].enabled = true;
+      localMediaStream.getVideoTracks()[0].enabled = true;
       //$('#local_video').css('border', '');
       //document.getElementById('muted').innerHTML = 'Muted: False';
     }
@@ -405,7 +415,7 @@ function componentLoaded (_this) {
     $('#' + toMute).css('border', '1px solid #f44336')
   })
   signalingSocket.on('unMute', function (config) {
-    let toUnMute = config.peerId
+    let toUnMute = config.peer_id
     console.log('unmuting' + toUnMute)
     $('#' + toUnMute).css('border', '')
   })
@@ -432,7 +442,7 @@ function componentLoaded (_this) {
       },
       function(stream) { /* user accepted access to a/v */
         console.log('Access granted to audio/video');
-        local_media_stream = stream;
+        localMediaStream = stream;
         var local_media = USE_VIDEO ? $('<video>') : $('<audio>');
         local_media.attr('autoplay', 'autoplay');
         local_media.attr('muted', 'true'); /* always mute ourselves by default */
@@ -444,11 +454,11 @@ function componentLoaded (_this) {
         $( '#local_video' ).width( "100%" );
         attachMediaStream(local_media[0], stream);
         //document.getElementById('muted').innerHTML = 'Muted: False';
-        console.log('am_i_speaker: ' + am_i_speaker);
+        console.log('amISpeaker: ' + amISpeaker);
         console.log('am_i_master: ' + roomMaster);
-        if (!am_i_speaker && !roomMaster) {
-          local_media_stream.getAudioTracks()[0].enabled = false;
-          local_media_stream.getVideoTracks()[0].enabled = false;
+        if (!amISpeaker && !roomMaster) {
+          localMediaStream.getAudioTracks()[0].enabled = false;
+          localMediaStream.getVideoTracks()[0].enabled = false;
           //document.getElementById('muted').innerHTML = 'Muted: True';
         }
         if (callback) callback();
@@ -466,7 +476,7 @@ function componentLoaded (_this) {
   }
 
   function askForWord () {
-    signaling_socket.emit('relayAskForWord', {
+    signalingSocket.emit('relayAskForWord', {
       'channel': channel,
       'nickname': user.nickname
     })
@@ -474,21 +484,21 @@ function componentLoaded (_this) {
 
   function muteAll () {
     console.log('Muting clients')
-    signaling_socket.emit('relayMuteAll', {
+    signalingSocket.emit('relayMuteAll', {
       'channel': channel
     })
   }  
 
   function toggleAudio () {
     console.log('Muting myself')
-    local_media_stream.getAudioTracks()[0].enabled =
-         !(local_media_stream.getAudioTracks()[0].enabled);
+    localMediaStream.getAudioTracks()[0].enabled =
+         !(localMediaStream.getAudioTracks()[0].enabled);
   }
 
   function toggleVideo () {
     console.log('Disabling myself video')
-    local_media_stream.getVideoTracks()[0].enabled =
-         !(local_media_stream.getVideoTracks()[0].enabled);
+    localMediaStream.getVideoTracks()[0].enabled =
+         !(localMediaStream.getVideoTracks()[0].enabled);
   }
 
 }

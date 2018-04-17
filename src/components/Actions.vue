@@ -20,23 +20,23 @@
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="muteMic()">
             <v-icon>mic</v-icon>
           </v-btn>
-          <span>Mute mic</span>
+          <span>Mute all clients</span>
         </v-tooltip>
-        <v-tooltip v-if="false">
+        <v-tooltip v-if="!admin">
           <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="unmuteMic()">
             <v-icon>mic_off</v-icon>
           </v-btn>
-          <span>Unmute mic</span>
+          <span>Stop talking</span>
         </v-tooltip>
       </v-flex>
       <v-flex xs1>
-        <v-tooltip v-if="cam" top>
+        <v-tooltip v-if="cam && admin" top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="blockCam()">
             <v-icon>videocam</v-icon>
           </v-btn>
           <span>Show cam</span>
         </v-tooltip>
-        <v-tooltip v-else top>
+        <v-tooltip v-else-if="!cam && admin" top>
           <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="useCam()">
             <v-icon>videocam_off</v-icon>
           </v-btn>
