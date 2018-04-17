@@ -14,7 +14,6 @@ import Vuex from 'vuex'
 import VueBus from 'vue-bus'
 import VueCarousel from 'vue-carousel'
 
-Vue.use(VueCarousel);
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -64,6 +63,8 @@ Vue.use(Vuetify, {
     'eraser': 'sb-eraser'
   }
 })
+
+Vue.use(VueCarousel)
 
 /* eslint-disable no-new */
 new Vue({
