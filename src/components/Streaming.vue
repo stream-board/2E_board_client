@@ -1,11 +1,12 @@
 <template>
   <div class="streaming-container">
-    <div id="master-videos">
+    <div id="local-container">
+      <video id="localVideo"></video>
     </div>
-    <div id="client-videos-container">
-      <carousel navigationEnabled id="client-videos" :per-page="3" mouse-drag="false">
-      </carousel>
-    </div>
+    <carousel id="remote-container" :perPage="2" :navigationEnabled="true" :scrollPerPage="true">
+      <slide class="remoteVideo" v-for="video in videos" v-bind:key="video" :id="video">
+      </slide>
+    </carousel>
   </div>
 </template>
 
@@ -15,7 +16,7 @@
   .streaming-container{
     background-color: #174557;
   }
-  #master-videos{
+  #local-container{
     width: 100%;
     height: 70%;
     position: relative;
@@ -23,21 +24,27 @@
     justify-content: center;
     align-items: flex-end;
   }
-  #client-videos-container{
-    width: 100%;
+  #remote-container{
+    width: 80%;
+    left: 10%;
     height: 30%;
     position: relative;
     display: flex;
     justify-content: center;
     align-items: center;
   }
-  #local_video{
+  #localVideo{
     border-radius: 10px;
     max-height: 95%;
   }
-  .remote-video{
-    margin: 1%;
-    border-radius: 5px;
-    max-width: 28%;
+  .VueCarousel-wrapper{
+    max-height: 100%;
+  }
+  .remoteVideo{
+    max-height: 100%;
+  }
+  .remoteVideo video{
+    max-height: 100%;
+    border-radius: 10px;
   }
 </style>
