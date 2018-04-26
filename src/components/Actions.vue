@@ -7,43 +7,6 @@
       </v-flex>
       <v-spacer></v-spacer>
       <div class="divider-actions"></div>
-      <v-flex xs1 v-if="!admin">
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="askForMic()">
-            <v-icon>pan_tool</v-icon>
-          </v-btn>
-          <span>Ask for mic</span>
-        </v-tooltip>
-      </v-flex>
-      <v-flex xs1 v-if="admin">
-        <v-tooltip top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="muteMic()">
-            <v-icon>mic</v-icon>
-          </v-btn>
-          <span>Mute all clients</span>
-        </v-tooltip>
-        <v-tooltip v-if="!admin">
-          <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="unmuteMic()">
-            <v-icon>mic_off</v-icon>
-          </v-btn>
-          <span>Stop talking</span>
-        </v-tooltip>
-      </v-flex>
-      <v-flex xs1>
-        <v-tooltip v-if="cam && admin" top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="primary" @click="blockCam()">
-            <v-icon>videocam</v-icon>
-          </v-btn>
-          <span>Show cam</span>
-        </v-tooltip>
-        <v-tooltip v-else-if="!cam && admin" top>
-          <v-btn small class="elevation-10" slot="activator" outline fab color="error" @click="useCam()">
-            <v-icon>videocam_off</v-icon>
-          </v-btn>
-          <span>Hide cam</span>
-        </v-tooltip>
-      </v-flex>
-      <div class="divider-actions"></div>
       <v-flex xs1 v-if="admin">
         <v-tooltip top>
           <v-btn small class="elevation-10" :disabled="isAllowed" slot="activator" outline fab color="primary" @click="takeBackPencil()">
@@ -188,22 +151,6 @@ export default {
     askForMic () {
       console.log('Asked for mic')
       this.$bus.emit('ask-for-mic')
-    },
-    muteMic () {
-      this.mic = true
-      this.$bus.emit('mute-mic')
-    },
-    unmuteMic () {
-      this.mic = true
-      this.$bus.emit('unmute-mic')
-    },
-    useCam () {
-      this.cam = true
-      this.$bus.emit('activate-cam')
-    },
-    blockCam () {
-      this.cam = false
-      this.$bus.emit('block-cam')
     },
     askForBoard () {
       this.$bus.emit('ask-for-turn')
