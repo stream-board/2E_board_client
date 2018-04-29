@@ -101,7 +101,6 @@
 
 <script>
 import { COLORS, THICKNESSES, TYPES } from '../constants/constants'
-import { DELETE_ROOM_MUTATION, EXIT_ROOM_MUTATION } from '../constants/graphql'
 
 export default {
   name: 'Actions',
@@ -132,21 +131,7 @@ export default {
   },
   methods: {
     exitToLobby () {
-      this.$bus.emit('user-disconnected')
-      let mutation = EXIT_ROOM_MUTATION
-      if (this.admin) mutation = DELETE_ROOM_MUTATION
-      this.$apollo.mutate({
-        mutation: mutation,
-        variables: {
-          idOwner: this.user.id,
-          idRoom: this.room.idRoom
-        }
-      }).then((response) => {
-        console.log('Success')
-        this.$router.push('/app')
-      }).catch((error) => {
-        console.log(error)
-      })
+      this.$router.push('/app')
     },
     askForMic () {
       console.log('Asked for mic')

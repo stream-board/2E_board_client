@@ -14,6 +14,10 @@ import Vuex from 'vuex'
 import VueBus from 'vue-bus'
 import VueCarousel from 'vue-carousel'
 
+import { split } from 'apollo-link'
+import { WebSocketLink } from 'apollo-link-ws'
+import { getMainDefinition } from 'apollo-utilities'
+
 Vue.use(Vuex)
 
 const store = new Vuex.Store({
@@ -33,8 +37,25 @@ const httpLink = new HttpLink({
   uri: 'http://ec2-35-168-17-78.compute-1.amazonaws.com:5000/graphql'
 })
 
+const wsLink = new WebSocketLink({
+  uri: 'ws://ec2-35-168-17-78.compute-1.amazonaws.com:5000/subscriptions',
+  options: {
+    reconnect: true
+  }
+})
+
+const link = split(
+  ({ query }) => {
+    const { kind, operation } = getMainDefinition(query)
+    return kind === 'OperationDefinition' &&
+      operation === 'subscription'
+  },
+  wsLink,
+  httpLink
+)
+
 const apolloClient = new ApolloClient({
-  link: httpLink,
+  link,
   cache: new InMemoryCache(),
   connectToDevTools: true
 })

@@ -28,6 +28,7 @@ export const ALL_ROOMS_QUERY = gql`
       descriptionRoom,
       categoryRoom,
       owner{
+        id,
         name,
         nickname,
         image
@@ -158,3 +159,21 @@ mutation DeleteSessionMutation($uid: String!, $token: String!, $client: String!)
   }
 }
 `
+
+// Subscriptions
+
+export const ROOM_ADDED_SUBSCRIPTION = gql`
+subscription RoomAdded{
+  roomAdded{
+    idRoom,
+    nameRoom,
+    owner{
+      id,
+      name,
+      nickname,
+      image
+    },
+    descriptionRoom,
+    categoryRoom
+  }
+}`

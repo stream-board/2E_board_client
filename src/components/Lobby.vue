@@ -132,7 +132,7 @@
         </v-flex>
         <v-list class="list mt-5" two-line>
           <v-flex xs12>
-            <v-list-tile class="room" v-if="checkCategory(room.category.value)" avatar v-for="room in roomsList" :key="room.idRoom">
+            <v-list-tile class="room" avatar v-for="room in allRooms" :key="room.idRoom">
               <v-list-tile-action>
                 <v-icon>{{room.category.icon}}</v-icon>
               </v-list-tile-action>
@@ -161,39 +161,28 @@
 </template>
 
 <script>
-import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION } from '../constants/graphql'
+import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION, ROOM_ADDED_SUBSCRIPTION } from '../constants/graphql'
 import { CATEGORIES } from '../constants/constants'
 
 export default {
   name: 'Lobby',
-  beforeRouteEnter (to, from, next) {
-    next(vm => {
-      vm.fetchData()
-    })
-  },
-  data () {
-    return {
-      createDialog: false,
-      joinDialog: false,
-      snackbar: false,
-      message: 'Error while creating room',
-      roomsList: [],
-      user: JSON.parse(localStorage.getItem('user')),
-      selectedCategory: 'all',
-      newRoom: {},
-      joinId: null,
-      categories: CATEGORIES
-    }
-  },
-  methods: {
-    fetchData () {
-      console.log('fetching Data')
-      this.$apollo.query({
-        query: ALL_ROOMS_QUERY,
-        fetchPolicy: 'network-only'
-      }).then((result) => {
+  apollo: {
+    allRooms: {
+      query: ALL_ROOMS_QUERY,
+      fetchPolicy: 'network-only',
+      subscribeToMore: {
+        document: ROOM_ADDED_SUBSCRIPTION,
+        updateQuery: (previousResult, { subscriptionData }) => {
+          let newList = previousResult.allRooms.slice(0)
+          newList.push(subscriptionData.data.roomAdded)
+          let result = {allRooms: newList}
+          return result
+        }
+      },
+      update (data) {
+        console.log(data)
         let rooms = []
-        result.data.allRooms.forEach((item) => {
+        data.allRooms.forEach((item) => {
           let newCategory = this.categories.filter((category) => {
             return category.value === item.categoryRoom
           })[0]
@@ -208,16 +197,27 @@ export default {
             category: newCategory
           }
           rooms.push(room)
-          this.roomsList = rooms
         })
-      }).catch((error) => {
-        console.log(error)
-      })
-    },
-    refresh () {
-      this.fetchData()
-      console.log('refresh')
-    },
+        return rooms
+      }
+    }
+  },
+  data () {
+    return {
+      createDialog: false,
+      joinDialog: false,
+      snackbar: false,
+      message: 'Error while creating room',
+      roomsList: [],
+      user: JSON.parse(localStorage.getItem('user')),
+      selectedCategory: 'all',
+      newRoom: {},
+      joinId: null,
+      categories: CATEGORIES,
+      allRooms: []
+    }
+  },
+  methods: {
     joinRoom (id) {
       let user = JSON.parse(localStorage.getItem('user'))
       this.$apollo.mutate({
