@@ -48,6 +48,7 @@ export default {
       }
     },
     setAdmin () {
+      console.log('emitadmin')
       this.$bus.emit('set-admin')
     },
     changePermissions (value) {

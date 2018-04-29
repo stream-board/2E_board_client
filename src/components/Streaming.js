@@ -15,6 +15,11 @@ export default {
       url: 'http://ec2-34-228-226-216.compute-1.amazonaws.com:8888/'
     })
 
+    this.$bus.on('user-disconnected', () => {
+      webrtc.stopLocalVideo()
+      webrtc.leaveRoom()
+    })
+
     webrtc.on('readyToCall', function () {
       // you can name it anything
       webrtc.joinRoom('test')

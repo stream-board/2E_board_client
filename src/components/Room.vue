@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { ROOM_BY_ID_QUERY } from '../constants/graphql'
+import { ROOM_BY_ID_QUERY, DELETE_ROOM_MUTATION, EXIT_ROOM_MUTATION } from '../constants/graphql'
 import Board from '@/components/Board.vue'
 import Actions from '@/components/Actions.vue'
 import Chat from '@/components/Chat.vue'
@@ -33,7 +33,8 @@ export default {
     room: {},
     user: JSON.parse(localStorage.getItem('user')),
     message: '',
-    snackbar: false
+    snackbar: false,
+    admin: false
   }),
   created () {
     this.$apollo.query({
@@ -64,6 +65,60 @@ export default {
       this.message = `${data} is now drawing`
       this.snackbar = true
     })
+  },
+  mounted () {
+    this.$bus.on('set-admin', () => {
+      console.log('onadmin')
+      this.admin = true
+    })
+  },
+  beforeRouteLeave (to, from, next) {
+    if (this.admin) {
+      this.$swal({
+        title: 'Leaving room',
+        text: `You're the owner of the room, if you leave the room will be deleted and all the participants will be kicked. Are you sure you want to leave the room?`,
+        type: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#26d3cd',
+        cancelButtonColor: '#f44336',
+        confirmButtonText: 'Yes',
+        cancelButtonText: 'No'
+      }).then((result) => {
+        if (result.value) {
+          console.log('Yes')
+          this.$bus.emit('user-disconnected')
+          this.$apollo.mutate({
+            mutation: DELETE_ROOM_MUTATION,
+            variables: {
+              idOwner: this.user.id,
+              idRoom: this.room.idRoom
+            }
+          }).then((response) => {
+            console.log('Success')
+            next()
+          }).catch((error) => {
+            console.log(error)
+          })
+        } else {
+          console.log('No')
+          next(false)
+        }
+      })
+    } else {
+      this.$apollo.mutate({
+        mutation: EXIT_ROOM_MUTATION,
+        variables: {
+          idOwner: this.user.id,
+          idRoom: this.room.idRoom
+        }
+      }).then((response) => {
+        console.log('Success')
+        this.$bus.emit('user-disconnected')
+        next()
+      }).catch((error) => {
+        console.log(error)
+      })
+    }
   }
 }
 </script>
