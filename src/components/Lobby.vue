@@ -180,7 +180,6 @@ export default {
         }
       },
       update (data) {
-        console.log(data)
         let rooms = []
         data.allRooms.forEach((item) => {
           let newCategory = this.categories.filter((category) => {

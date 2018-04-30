@@ -44,6 +44,9 @@ export const ROOM_BY_ID_QUERY = gql`
       descriptionRoom,
       idRoom,
       categoryRoom,
+      owner{
+        id
+      }
       Participants{
         id,
         name,
@@ -69,6 +72,17 @@ export const USER_IMAGE_BY_ID_QUERY = gql`
       data{
         image
       }
+    }
+  }
+`
+
+export const PARTICIPANTS_BY_ID_QUERY = gql`
+  query ParticipantsById($id: Int!){
+    participantsById(id: $id){
+      id,
+      name,
+      nickname,
+      image
     }
   }
 `
@@ -176,4 +190,19 @@ subscription RoomAdded{
     descriptionRoom,
     categoryRoom
   }
+}`
+
+export const PARTICIPANT_JOINED_SUBSCRIPTION = gql`
+subscription ParticipantJoined($roomId: Int!){
+  participantJoined(roomId: $roomId){
+    id,
+    name,
+    nickname,
+    image
+  }
+}`
+
+export const PARTICIPANT_LEFT_SUBSCRIPTION = gql`
+subscription ParticipantLeft($roomId: Int!){
+  participantLeft(roomId: $roomId)
 }`

@@ -3,7 +3,7 @@
     <board id="board-container"></board>
     <actions :room="room" id="actions-container"></actions>
     <cameras id="streaming-container"></cameras>
-    <chat :room="room" :participants="room.Participants" id="chat-container"></chat>
+    <chat :room="room" id="chat-container"></chat>
     <v-snackbar
       color="info"
       v-model="snackbar"
@@ -36,19 +36,23 @@ export default {
     snackbar: false,
     admin: false
   }),
-  created () {
-    this.$apollo.query({
+  apollo: {
+    room: {
       query: ROOM_BY_ID_QUERY,
-      variables: {
-        id: this.$route.params.roomid
-      }
-    }).then((result) => {
-      this.room = result.data.roomById
-      this.message = `Welcome to ${this.room.nameRoom}`
-      this.snackbar = true
-    }).catch((error) => {
-      console.log(error)
-    })
+      variables () {
+        return {
+          id: this.$route.params.roomid
+        }
+      },
+      update (data) {
+        return data.roomById
+      },
+      fetchPolicy: 'network-only'
+    }
+  },
+  mounted () {
+    this.message = `Welcome to ${this.room.nameRoom}`
+    this.snackbar = true
     this.$bus.on('new-participant', (data) => {
       if (data.message.split(' ')[0] !== `${this.user.nickname}`) {
         this.message = data.message
@@ -65,10 +69,7 @@ export default {
       this.message = `${data} is now drawing`
       this.snackbar = true
     })
-  },
-  mounted () {
     this.$bus.on('set-admin', () => {
-      console.log('onadmin')
       this.admin = true
     })
   },

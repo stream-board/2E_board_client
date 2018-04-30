@@ -7,6 +7,40 @@
       </v-flex>
       <v-spacer></v-spacer>
       <div class="divider-actions"></div>
+      <v-flex xs1>
+        <v-menu offset-y nudge-left="120" nudge-top="15" top>
+          <v-tooltip top slot="activator">
+            <v-btn small class="elevation-10" slot="activator" outline fab color="primary">
+              <v-icon>mdi-account-multiple</v-icon>
+            </v-btn>
+            <span>See participants</span>
+          </v-tooltip>
+          <v-container id="participants-container" grid-list-sm>
+            <v-layout row wrap>
+              <v-list row>
+                <v-list-tile xs2 avatar v-for="participant in participants" :key="participant.id">
+                  <v-list-tile-avatar>
+                    <img :src="participant.image">
+                  </v-list-tile-avatar>
+                  <v-list-tile-content xs8>
+                    <v-list-tile-title v-text="participant.name"></v-list-tile-title>
+                  </v-list-tile-content>
+                  <v-list-tile-action xs2 v-if="admin">
+                    <v-icon v-if="participant.id === room.owner.id" color="primary">star</v-icon>
+                    <v-btn flat icon color="error" v-else>
+                      <v-icon>mdi-cancel</v-icon>
+                    </v-btn>
+                  </v-list-tile-action>
+                  <v-list-tile-action xs2 v-else>
+                    <v-icon v-if="participant.id === room.owner.id" color="primary">star</v-icon>
+                  </v-list-tile-action>
+                </v-list-tile>
+              </v-list>
+            </v-layout>
+          </v-container>
+        </v-menu>
+      </v-flex>
+      <div class="divider-actions"></div>
       <v-flex xs1 v-if="admin">
         <v-tooltip top>
           <v-btn small class="elevation-10" :disabled="isAllowed" slot="activator" outline fab color="primary" @click="takeBackPencil()">
@@ -101,6 +135,7 @@
 
 <script>
 import { COLORS, THICKNESSES, TYPES } from '../constants/constants'
+import { PARTICIPANTS_BY_ID_QUERY, PARTICIPANT_JOINED_SUBSCRIPTION, PARTICIPANT_LEFT_SUBSCRIPTION } from '../constants/graphql'
 
 export default {
   name: 'Actions',
@@ -115,17 +150,59 @@ export default {
     colors: COLORS,
     thicknesses: THICKNESSES,
     types: TYPES,
-    user: JSON.parse(localStorage.getItem('user'))
+    user: JSON.parse(localStorage.getItem('user')),
+    participants: []
   }),
   props: [
     'room'
   ],
+  apollo: {
+    participants: {
+      query: PARTICIPANTS_BY_ID_QUERY,
+      variables () {
+        return {
+          id: this.$route.params.roomid
+        }
+      },
+      update (data) {
+        return data.participantsById
+      },
+      subscribeToMore: [
+        { document: PARTICIPANT_JOINED_SUBSCRIPTION,
+          variables () {
+            return {
+              roomId: this.$route.params.roomid
+            }
+          },
+          updateQuery: (previousResult, { subscriptionData }) => {
+            let newList = previousResult.participantsById.slice(0)
+            newList.push(subscriptionData.data.participantJoined)
+            let result = {participantsById: newList}
+            return result
+          }
+        },
+        { document: PARTICIPANT_LEFT_SUBSCRIPTION,
+          variables () {
+            return {
+              roomId: this.$route.params.roomid
+            }
+          },
+          updateQuery: (previousResult, { subscriptionData }) => {
+            let newList = previousResult.participantsById.slice(0)
+            newList = newList.filter(item => item.id !== subscriptionData.data.participantLeft)
+            let result = {participantsById: newList}
+            return result
+          }
+        }
+      ],
+      fetchPolicy: 'network-only'
+    }
+  },
   mounted () {
     this.$bus.on('set-admin', () => {
       this.admin = true
     })
     this.$bus.on('change-permissions', (data) => {
-      console.log('change Permissions' + data)
       this.isAllowed = data
     })
   },
@@ -134,7 +211,6 @@ export default {
       this.$router.push('/app')
     },
     askForMic () {
-      console.log('Asked for mic')
       this.$bus.emit('ask-for-mic')
     },
     askForBoard () {
@@ -179,6 +255,10 @@ export default {
   }
   #thickness-container{
     width: 10vw;
+    background-color: #FFF;
+  }
+  #participants-container{
+    width: 20vw;
     background-color: #FFF;
   }
 </style>

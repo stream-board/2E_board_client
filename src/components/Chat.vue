@@ -56,12 +56,10 @@ export default {
     roomId: 0
   }),
   props: [
-    'room',
-    'participants'
+    'room'
   ],
   mounted () {
     this.roomId = this.$route.params.roomid
-    console.log(this.roomId)
     let messageInput = document.getElementById('new-message')
     let inputContainer = document.getElementById('new-message-container')
     messageInput.style.height = 0
@@ -82,7 +80,6 @@ export default {
       }
     }).then((result) => {
       let data = result.data.chatMsgByRoomId.slice()
-      console.log(data)
       let promises = []
       let newMessages = []
       data.forEach((message) => {
