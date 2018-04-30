@@ -47,12 +47,14 @@ export default {
       update (data) {
         return data.roomById
       },
+      result (result) {
+        this.message = `Welcome to ${this.room.nameRoom}`
+        this.snackbar = true
+      },
       fetchPolicy: 'network-only'
     }
   },
   mounted () {
-    this.message = `Welcome to ${this.room.nameRoom}`
-    this.snackbar = true
     this.$bus.on('new-participant', (data) => {
       if (data.message.split(' ')[0] !== `${this.user.nickname}`) {
         this.message = data.message
@@ -118,6 +120,7 @@ export default {
         next()
       }).catch((error) => {
         console.log(error)
+        next()
       })
     }
   }

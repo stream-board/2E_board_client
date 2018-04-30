@@ -22,7 +22,7 @@ export default {
 
     webrtc.on('readyToCall', function () {
       // you can name it anything
-      webrtc.joinRoom('test')
+      webrtc.joinRoom(`room-${this.$route.params.roomid}`)
     })
 
     webrtc.on('videoAdded', (video, peer) => {
