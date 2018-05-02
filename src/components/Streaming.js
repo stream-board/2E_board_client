@@ -12,7 +12,7 @@ export default {
       localVideoEl: 'localVideo',
       remoteVideosEl: '',
       autoRequestMedia: true,
-      url: 'http://ec2-34-228-226-216.compute-1.amazonaws.com:8888/'
+      url: '35.190.138.158:4005'
     })
 
     this.$bus.on('user-disconnected', () => {
@@ -23,6 +23,7 @@ export default {
     webrtc.on('readyToCall', function () {
       // you can name it anything
       webrtc.joinRoom(`room-${this.$route.params.roomid}`)
+      console.log('join')
     })
 
     webrtc.on('videoAdded', (video, peer) => {

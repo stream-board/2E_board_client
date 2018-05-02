@@ -130,7 +130,7 @@ export default {
       this.newMessage += this.emojiConverter.replace_colons(data.colons)
     },
     initializeSockets () {
-      let URL = `ws://ec2-54-224-164-98.compute-1.amazonaws.com:4004/chat-room/${this.$route.params.roomid}`
+      let URL = `ws://35.190.138.158/chat-room/${this.$route.params.roomid}`
       // eslint-disable-next-line
       this.socket = new ReconnectingWebSocket(URL)
 

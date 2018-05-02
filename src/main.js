@@ -34,11 +34,11 @@ const store = new Vuex.Store({
 Vue.use(VueBus)
 
 const httpLink = new HttpLink({
-  uri: 'http://ec2-35-168-17-78.compute-1.amazonaws.com:5000/graphql'
+  uri: 'http://35.190.138.158/graphql'
 })
 
 const wsLink = new WebSocketLink({
-  uri: 'ws://ec2-35-168-17-78.compute-1.amazonaws.com:5000/subscriptions',
+  uri: 'ws://35.190.138.158/subscriptions',
   options: {
     reconnect: true
   }
