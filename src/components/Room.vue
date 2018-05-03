@@ -79,7 +79,7 @@ export default {
     if (this.admin) {
       this.$swal({
         title: 'Leaving room',
-        text: `You're the owner of the room, if you leave the room will be deleted and all the participants will be kicked. Are you sure you want to leave the room?`,
+        text: `You're the owner of the room. If you leave, the room will be deleted and all the participants will be kicked. Are you sure you want to leave the room?`,
         type: 'warning',
         showCancelButton: true,
         confirmButtonColor: '#26d3cd',
