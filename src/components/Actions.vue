@@ -233,6 +233,9 @@ export default {
     },
     clearBoard () {
       this.$bus.emit('clear-board')
+    },
+    banUser (id) {
+      console.log('ban')
     }
   }
 }
