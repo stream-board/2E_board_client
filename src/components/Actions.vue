@@ -27,7 +27,7 @@
                   </v-list-tile-content>
                   <v-list-tile-action xs2 v-if="admin">
                     <v-icon v-if="participant.id === room.owner.id" color="primary">star</v-icon>
-                    <v-btn flat icon color="error" v-else>
+                    <v-btn flat icon color="error" v-else @click="banUser(participant.id)">
                       <v-icon>mdi-cancel</v-icon>
                     </v-btn>
                   </v-list-tile-action>
