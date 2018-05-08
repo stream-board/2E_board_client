@@ -12,7 +12,7 @@ export default {
       localVideoEl: 'localVideo',
       remoteVideosEl: '',
       autoRequestMedia: true,
-      url: '35.190.138.158:4005'
+      url: 'http://35.190.138.158:4005'
     })
 
     this.$bus.on('user-disconnected', () => {

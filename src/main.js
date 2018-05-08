@@ -6,6 +6,7 @@ import router from './router'
 import VueSweetalert2 from 'vue-sweetalert2'
 import { ApolloClient } from 'apollo-client'
 import { HttpLink } from 'apollo-link-http'
+import { ApolloLink, concat, split } from 'apollo-link'
 import { InMemoryCache } from 'apollo-cache-inmemory'
 import VueApollo from 'vue-apollo'
 import Vuetify from 'vuetify'
@@ -14,7 +15,6 @@ import Vuex from 'vuex'
 import VueBus from 'vue-bus'
 import VueCarousel from 'vue-carousel'
 
-import { split } from 'apollo-link'
 import { WebSocketLink } from 'apollo-link-ws'
 import { getMainDefinition } from 'apollo-utilities'
 
@@ -37,6 +37,20 @@ const httpLink = new HttpLink({
   uri: 'http://35.190.138.158/graphql'
 })
 
+const authMiddleware = new ApolloLink((operation, forward) => {
+  let user = JSON.parse(localStorage.getItem('user'))
+  console.log(user)
+  operation.setContext({
+    headers: {
+      'access-token': user.token || null,
+      client: user.client || null,
+      uid: user.email || null
+    }
+  })
+
+  return forward(operation)
+})
+
 const wsLink = new WebSocketLink({
   uri: 'ws://35.190.138.158/subscriptions',
   options: {
@@ -51,7 +65,7 @@ const link = split(
       operation === 'subscription'
   },
   wsLink,
-  httpLink
+  concat(authMiddleware, httpLink)
 )
 
 const apolloClient = new ApolloClient({
