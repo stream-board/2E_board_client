@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { VALIDATE_TOKEN_QUERY } from '../constants/graphql'
+// import { VALIDATE_TOKEN_QUERY } from '../constants/graphql'
 
 export default {
   name: 'Application',
@@ -16,8 +16,8 @@ export default {
   }),
   props: {
     source: String
-  },
-  beforeRouteEnter (to, from, next) {
+  }
+  /* beforeRouteEnter (to, from, next) {
     next(vm => {
       let userString = localStorage.getItem('user')
       if (userString == null) {
@@ -48,7 +48,7 @@ export default {
         vm.$router.push({path: `/login`})
       }
     })
-  }
+  } */
 }
 </script>
 
