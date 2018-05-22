@@ -34,11 +34,11 @@ const store = new Vuex.Store({
 Vue.use(VueBus)
 
 const httpLink = new HttpLink({
-  uri: 'http://35.190.138.158/graphql'
+  uri: 'http://35.196.37.210/graphql'
 })
 
 const authMiddleware = new ApolloLink((operation, forward) => {
-  let user = JSON.parse(localStorage.getItem('user'))
+  /* let user = JSON.parse(localStorage.getItem('user'))
   console.log(user)
   operation.setContext({
     headers: {
@@ -46,13 +46,13 @@ const authMiddleware = new ApolloLink((operation, forward) => {
       client: user.client || null,
       uid: user.email || null
     }
-  })
+  }) */
 
   return forward(operation)
 })
 
 const wsLink = new WebSocketLink({
-  uri: 'ws://35.190.138.158/subscriptions',
+  uri: 'ws://35.196.37.210/subscriptions',
   options: {
     reconnect: true
   }

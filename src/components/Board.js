@@ -9,7 +9,7 @@ export default {
   }),
   mounted: function () {
     let user = JSON.parse(localStorage.getItem('user'))
-    let URL = `35.190.138.158:4002?room=${this.$route.params.roomid}&nick=${user.nickname}&id=${user.id}`
+    let URL = `35.196.37.210:4002?room=${this.$route.params.roomid}&nick=${user.nickname}&id=${user.id}`
     // eslint-disable-next-line
     this.socket = io(URL)
     componentLoaded(this.$route.params.roomid, this)
