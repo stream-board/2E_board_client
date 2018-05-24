@@ -130,7 +130,7 @@ export default {
       this.newMessage += this.emojiConverter.replace_colons(data.colons)
     },
     initializeSockets () {
-      let URL = `ws://35.231.29.114/chat-room/${this.$route.params.roomid}`
+      let URL = `ws://35.196.37.210/chat-room/${this.$route.params.roomid}`
       // eslint-disable-next-line
       this.socket = new ReconnectingWebSocket(URL)
 
