@@ -34,7 +34,7 @@ const store = new Vuex.Store({
 Vue.use(VueBus)
 
 const httpLink = new HttpLink({
-  uri: 'http://35.196.37.210/graphql'
+  uri: 'http://35.196.37.210:9001/graphql'
 })
 
 const authMiddleware = new ApolloLink((operation, forward) => {
@@ -52,7 +52,7 @@ const authMiddleware = new ApolloLink((operation, forward) => {
 })
 
 const wsLink = new WebSocketLink({
-  uri: 'ws://35.196.37.210/subscriptions',
+  uri: 'ws://35.196.37.210:9001/subscriptions',
   options: {
     reconnect: true
   }

@@ -161,7 +161,7 @@
 </template>
 
 <script>
-import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION, ROOM_ADDED_SUBSCRIPTION } from '../constants/graphql'
+import { CREATE_ROOM_MUTATION, JOIN_ROOM_MUTATION, ALL_ROOMS_QUERY, DELETE_SESSION_MUTATION, ROOM_ADDED_SUBSCRIPTION, ROOM_DELETED_SUBSCRIPTION } from '../constants/graphql'
 import { CATEGORIES } from '../constants/constants'
 
 export default {
@@ -170,15 +170,30 @@ export default {
     allRooms: {
       query: ALL_ROOMS_QUERY,
       fetchPolicy: 'network-only',
-      subscribeToMore: {
-        document: ROOM_ADDED_SUBSCRIPTION,
-        updateQuery: (previousResult, { subscriptionData }) => {
-          let newList = previousResult.allRooms.slice(0)
-          newList.push(subscriptionData.data.roomAdded)
-          let result = {allRooms: newList}
-          return result
+      subscribeToMore: [
+        {
+          document: ROOM_ADDED_SUBSCRIPTION,
+          updateQuery: (previousResult, { subscriptionData }) => {
+            let newList = previousResult.allRooms.slice(0)
+            newList.push(subscriptionData.data.roomAdded)
+            let result = {allRooms: newList}
+            return result
+          }
+        },
+        {
+          document: ROOM_DELETED_SUBSCRIPTION,
+          updateQuery: (previousResult, { subscriptionData }) => {
+            let newList = previousResult.allRooms.slice(0)
+            let resultList = newList.filter((item) => {
+              console.log(item)
+              console.log(subscriptionData.data)
+              return item.idRoom !== subscriptionData.data.roomDeleted.idRoom
+            })
+            let result = {allRooms: resultList}
+            return result
+          }
         }
-      },
+      ],
       update (data) {
         let rooms = []
         data.allRooms.forEach((item) => {

@@ -71,6 +71,8 @@ function componentLoaded (roomId, _this) {
   var canvas
   var context
 
+  var canvasContainer = document.getElementById('canvas-container')
+
   var hasTouch = false
 
   var localPen = {}
@@ -313,8 +315,8 @@ function componentLoaded (roomId, _this) {
 
     var event = e || window.event
 
-    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
-    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth - canvasContainer.offsetLeft
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight - canvasContainer.offsetTop
 
     penDown(mouseX, mouseY)
 
@@ -332,8 +334,8 @@ function componentLoaded (roomId, _this) {
       return
     }
     var event = e || window.event
-    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
-    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth - canvasContainer.offsetLeft
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight - canvasContainer.offsetTop
 
     penMove(mouseX, mouseY)
 
@@ -349,8 +351,8 @@ function componentLoaded (roomId, _this) {
       return
     }
     var event = e || window.event
-    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth
-    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight
+    var mouseX = (event.clientX * canvas.width) / canvas.clientWidth - canvasContainer.offsetLeft
+    var mouseY = (event.clientY * canvas.height) / canvas.clientHeight - canvasContainer.offsetTop
 
     penUp(mouseX, mouseY)
   }

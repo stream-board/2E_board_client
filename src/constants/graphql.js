@@ -192,6 +192,13 @@ subscription RoomAdded{
   }
 }`
 
+export const ROOM_DELETED_SUBSCRIPTION = gql`
+subscription RoomDeleted{
+  roomDeleted{
+    idRoom
+  }
+}`
+
 export const PARTICIPANT_JOINED_SUBSCRIPTION = gql`
 subscription ParticipantJoined($roomId: Int!){
   participantJoined(roomId: $roomId){
